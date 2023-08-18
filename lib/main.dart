@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:tesis/achievements.dart';
+import 'package:tesis/flowtime.dart';
+import 'package:tesis/pomodoro.dart';
+import 'package:tesis/projects.dart';
+import 'package:tesis/tools.dart';
 
 void main() {
   runApp(const MyApp());
@@ -48,12 +53,15 @@ class _MyHomePageState extends State<MyHomePage> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 ElevatedButton(                   // Botón Pomodoro
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=>  const Pomodoro())); // Navegar a la pantalla de Pomodoro
+                  },
                   child: const Text("Pomodoro"),
                 ),
 
                 ElevatedButton(                         // Botón FlowTime
                   onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=>  const FlowTime()));
                   },
                   child: const Text("FlowTime"),        
                 )
@@ -61,18 +69,21 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             ElevatedButton(                             // Botón Proyectos
                   onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=>  const Projects()));
                   },
                   child: const Text("Proyectos"),
                 ),
 
             ElevatedButton(                             // Botón Logros
                   onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=>  const Achievements()));
                   },
                   child: const Text("Logros"),
                 ),
             
             ElevatedButton(                             // Botón Herramientas adicionales
                   onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=>  const Tools()));
                   },
                   child: const Text("Herramientas adicionales"),  
                 ),
