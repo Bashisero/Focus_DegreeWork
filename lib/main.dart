@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:tesis/achievements.dart';
+import 'package:tesis/cronometro.dart';
 import 'package:tesis/flowtime.dart';
 import 'package:tesis/pomodoro.dart';
-import 'package:tesis/projects.dart';
+//import 'package:tesis/projects.dart';
 import 'package:tesis/tools.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final CronometroController _cronometroController = CronometroController();
+  MyApp({super.key});
 
   // This widget is the root of your application.
   @override
@@ -22,21 +24,23 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Hola'),
+      home: MyHomePage(title: 'Hola', cronometroController: _cronometroController ),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  const MyHomePage({Key? key, required this.title, required this.cronometroController}): super(key: key);
 
   final String title;
-
+  final CronometroController cronometroController;
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+
+  final CronometroController _cronometroController = CronometroController();
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +58,7 @@ class _MyHomePageState extends State<MyHomePage> {
               children: [
                 ElevatedButton(                   // Botón Pomodoro
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>  const Pomodoro())); // Navegar a la pantalla de Pomodoro
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=>  Pomodoro(_cronometroController))); // Navegar a la pantalla de Pomodoro
                   },
                   child: const Text("Pomodoro"),
                 ),
@@ -69,7 +73,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             ElevatedButton(                             // Botón Proyectos
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>  const Projects()));
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=>  Cronometro(_cronometroController)));
                   },
                   child: const Text("Proyectos"),
                 ),
