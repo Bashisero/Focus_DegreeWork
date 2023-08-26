@@ -1,12 +1,22 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
-class Cronometro extends StatefulWidget {
-  final CronometroController _cronometroController;
-  const Cronometro(this._cronometroController, {Key? key}) : super(key: key);
+class Cronometro extends StatelessWidget {
+  final CronometroController controller;
+
+  const Cronometro({Key? key, required this.controller}) : super(key: key);
 
   @override
-  State<Cronometro> createState() => _CronometroState();
+  Widget build(BuildContext context) {
+    return StreamBuilder<void>(
+      stream: controller.onUpdate,
+      builder: (context, snapshot) {
+        return Text(
+          controller.formaTiempo(),
+        );
+      },
+    );
+  }
 }
 
 class CronometroController {
@@ -14,22 +24,26 @@ class CronometroController {
   bool corriendo = false;
   late Timer timer;
 
-  final _updateController = StreamController<void>();
-  Stream<void> get onUpdate => _updateController.stream;
-
-  void iniciarCrono(VoidCallback onTick) {
-    if (!corriendo) {
+  void iniciarCrono(){
+    if(!corriendo){
+      corriendo = true;
       timer = Timer.periodic(const Duration(seconds: 1), (timer) {
         segundos++;
-        _updateController.add(null);
       });
+    }else{
+      detenerCrono();
     }
-    corriendo = true;
   }
 
   void detenerCrono() {
-    timer.cancel();
-    corriendo = false;
+    if(corriendo){
+      corriendo = false;
+      timer.cancel();
+    }
+  }
+
+  Stream<void> get onUpdate{
+    return Stream.periodic(const Duration(seconds:1));
   }
 
   String formaTiempo() {
@@ -47,29 +61,3 @@ class CronometroController {
   }
 }
 
-class _CronometroState extends State<Cronometro> {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          widget._cronometroController.formaTiempo(),
-          style: const TextStyle(fontSize: 50),
-        ),
-        OutlinedButton(
-          onPressed: () {
-            widget._cronometroController.iniciarCrono(() {
-              setState(() {});
-            });
-          },
-          child: const Text("Hola"),
-        ),
-        OutlinedButton(
-            onPressed: widget._cronometroController.detenerCrono,
-            child: const Text("Adiós")),
-      ],
-    );
-  }
-}

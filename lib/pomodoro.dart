@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:tesis/cronometro.dart';
+import 'package:tesis/tools.dart';
 
-class Pomodoro extends StatelessWidget {
-  final CronometroController _cronometroController;
-  const Pomodoro(this._cronometroController, {Key? key}) : super(key: key);
+class Pomodoro extends StatefulWidget {
+  const Pomodoro({Key? key}) : super(key: key);
+
+  @override
+  State<Pomodoro> createState() => _PomodoroState();
+}
+
+class _PomodoroState extends State<Pomodoro> {
+  final CronometroController controller = CronometroController();
 
   @override
   Widget build(BuildContext context) {
@@ -56,27 +63,39 @@ class Pomodoro extends StatelessWidget {
                       child: const Text("Esto es una prueba"),
                       onPressed: () => Navigator.pop(context)),
                   StreamBuilder<void>(
-                    stream: _cronometroController.onUpdate,
-                    builder: (context, snapshot){
-                      return Text(_cronometroController.formaTiempo(),);
+                    stream: controller.onUpdate,
+                    builder: (context, snapshot) {
+                      return Text(
+                        controller.formaTiempo(),
+                      );
                     },
                   ),
                   Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         ElevatedButton(
-                            child: const Text("Iniciar"), onPressed: () {
-                              _cronometroController.iniciarCrono(() {
-                                
-                               });
+                            child: const Text("Iniciar"),
+                            onPressed: () {
+                              setState(() {
+                                controller.iniciarCrono();
+                              });
                             }),
-                        
                         ElevatedButton(
-                            child: const Text("Detener"), onPressed: () {
-                              _cronometroController.detenerCrono();
-                            }
-                        )
-                      ])
+                            child: const Text("Detener"),
+                            onPressed: () {
+                              setState(() {
+                                controller.detenerCrono();
+                              });
+                            })
+                      ]),
+                  ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const Tools()));
+                      },
+                      child: const Text("Herramientas"))
                 ],
               );
             },

@@ -3,6 +3,7 @@ import 'package:tesis/achievements.dart';
 import 'package:tesis/cronometro.dart';
 import 'package:tesis/flowtime.dart';
 import 'package:tesis/pomodoro.dart';
+import 'package:tesis/projects.dart';
 //import 'package:tesis/projects.dart';
 import 'package:tesis/tools.dart';
 
@@ -40,8 +41,6 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  final CronometroController _cronometroController = CronometroController();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,7 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
               children: [
                 ElevatedButton(                   // Botón Pomodoro
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>  Pomodoro(_cronometroController))); // Navegar a la pantalla de Pomodoro
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=>  const Pomodoro())); // Navegar a la pantalla de Pomodoro
                   },
                   child: const Text("Pomodoro"),
                 ),
@@ -73,7 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             ElevatedButton(                             // Botón Proyectos
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>  Cronometro(_cronometroController)));
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=>  const Projects()));
                   },
                   child: const Text("Proyectos"),
                 ),
