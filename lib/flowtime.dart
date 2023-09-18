@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:tesis/cronometro.dart';
 
 class FlowTime extends StatefulWidget {
   const FlowTime({super.key});
@@ -9,7 +8,7 @@ class FlowTime extends StatefulWidget {
 }
 
 class _FlowTimeState extends State<FlowTime> {
-  final CronometroController controller = CronometroController();
+  //final CronometroController controller = CronometroController();
   int intInternas = 0;
   int intExternas = 0;
 
@@ -60,7 +59,7 @@ class _FlowTimeState extends State<FlowTime> {
                       ),
                     ),
                   ),
-                  Padding(
+                  /*Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: StreamBuilder<void>(
                       stream: controller.onUpdate,
@@ -70,7 +69,7 @@ class _FlowTimeState extends State<FlowTime> {
                                 fontSize: 60, color: Colors.black54));
                       },
                     ),
-                  ),
+                  ),*/
                   Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -78,7 +77,7 @@ class _FlowTimeState extends State<FlowTime> {
                             iconSize: 58,
                             onPressed: () {
                               setState(() {
-                                controller.iniciarCrono();
+                                //controller.iniciarCrono();
                               });
                             },
                             icon: const Icon(Icons.play_circle_rounded)),
@@ -116,8 +115,9 @@ class _FlowTimeState extends State<FlowTime> {
                                       child: Text(
                                     intInternas.toString(),
                                     style: const TextStyle(
-                                        fontSize: 23,
-                                        fontWeight: FontWeight.bold,),
+                                      fontSize: 23,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ))),
                             ),
                           ),
@@ -152,8 +152,9 @@ class _FlowTimeState extends State<FlowTime> {
                                   child: Center(
                                       child: Text(intExternas.toString(),
                                           style: const TextStyle(
-                                              fontSize: 23,
-                                              fontWeight: FontWeight.bold,)))),
+                                            fontSize: 23,
+                                            fontWeight: FontWeight.bold,
+                                          )))),
                             ),
                           ),
                         ],

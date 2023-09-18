@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:tesis/achievements.dart';
-import 'package:tesis/cronometro.dart';
 import 'package:tesis/flowtime.dart';
 import 'package:tesis/pomodoro.dart';
 import 'package:tesis/projects.dart';
@@ -8,12 +7,11 @@ import 'package:tesis/projects.dart';
 import 'package:tesis/tools.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final CronometroController _cronometroController = CronometroController();
-  MyApp({super.key});
+  const MyApp({super.key});
 
   // This widget is the root of your application.
   @override
@@ -25,16 +23,15 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: MyHomePage(title: 'Hola', cronometroController: _cronometroController ),
+      home: const MyHomePage(title: 'Hola'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title, required this.cronometroController}): super(key: key);
+  const MyHomePage({Key? key, required this.title,}): super(key: key);
 
   final String title;
-  final CronometroController cronometroController;
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
@@ -103,3 +100,5 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
+
