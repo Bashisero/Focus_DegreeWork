@@ -5,18 +5,34 @@ import 'package:tesis/pomodoro.dart';
 import 'package:tesis/projects.dart';
 //import 'package:tesis/projects.dart';
 import 'package:tesis/tools.dart';
+import 'descansoPom.dart';
+import 'resultados.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+int tomates = 0;
+int rondas = 0;
 void main() {
+  databaseFactory = databaseFactoryFfi;
+  sqfliteFfiInit();
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      routes:{
+        '/descansoPom': (context) => const DescansoPom(),
+        '/pomodoro': (context) => const Pomodoro(),
+        '/flowtime': (context) => const FlowTime(),
+        '/proyectos': (context) => const Projects(),
+        '/achievements': (context) => const Achievements(),
+        '/tools':(context) => const Tools(),
+        'resultados':(context) => const Resultados(),
+      },
+
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,    // Remove the debug banner
       theme: ThemeData(
@@ -54,14 +70,14 @@ class _MyHomePageState extends State<MyHomePage> {
               children: [
                 ElevatedButton(                   // Botón Pomodoro
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>  const Pomodoro())); // Navegar a la pantalla de Pomodoro
+                    Navigator.pushNamed(context, '/pomodoro'); // Navegar a la pantalla de Pomodoro
                   },
                   child: const Text("Pomodoro"),
                 ),
 
                 ElevatedButton(                         // Botón FlowTime
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>  const FlowTime()));
+                    Navigator.pushNamed(context, '/flowtime');
                   },
                   child: const Text("FlowTime"),        
                 )
@@ -69,21 +85,21 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             ElevatedButton(                             // Botón Proyectos
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>  const Projects()));
+                    Navigator.pushNamed(context, '/proyectos');
                   },
                   child: const Text("Proyectos"),
                 ),
 
             ElevatedButton(                             // Botón Logros
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>  const Achievements()));
+                    Navigator.pushNamed(context, '/achievements');
                   },
                   child: const Text("Logros"),
                 ),
             
             ElevatedButton(                             // Botón Herramientas adicionales
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>  const Tools()));
+                    Navigator.pushNamed(context, '/tools');
                   },
                   child: const Text("Herramientas adicionales"),  
                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 class FlowTime extends StatefulWidget {
   const FlowTime({super.key});
@@ -11,6 +12,78 @@ class _FlowTimeState extends State<FlowTime> {
   //final CronometroController controller = CronometroController();
   int intInternas = 0;
   int intExternas = 0;
+
+  bool corriendoFl = false;
+  late Timer timerFl;
+  int segundosFl = 0;
+
+  void iniciarCronoFl() {
+    if (!corriendoFl) {
+      corriendoFl = true;
+      timerFl = Timer.periodic(const Duration(seconds: 1), (timer) {
+        setState(() {
+          segundosFl++;
+        });
+      });
+    }
+  }
+
+  void detenerCronoFl() {
+    if (corriendoFl) {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text("Detener el cronómetro"),
+              content: const Text("¿Está seguro?"),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text("Cancelar")),
+                TextButton(
+                  onPressed: (){
+                    Navigator.of(context).pop();
+                    corriendoFl = false;
+                    timerFl.cancel();
+                  },
+                  child: const Text("Detener")
+                )
+              ],
+            );
+          });
+    }
+  }
+
+  Stream<void> get onUpdate {
+    return Stream.periodic(const Duration(seconds: 1));
+  }
+
+  String formaTiempoFl() {
+    Duration duracion = Duration(seconds: segundosFl);
+
+    String dosValores(int valor) {
+      return valor < 10 ? "0$valor" : "$valor";
+    }
+
+    String horas = dosValores(duracion.inHours);
+    String minutos = dosValores(duracion.inMinutes.remainder(60));
+    String segundos = dosValores(duracion.inSeconds.remainder(60));
+
+    return "$horas:$minutos:$segundos";
+  }
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    detenerCronoFl();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,28 +132,32 @@ class _FlowTimeState extends State<FlowTime> {
                       ),
                     ),
                   ),
-                  /*Padding(
+                  Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: StreamBuilder<void>(
-                      stream: controller.onUpdate,
+                      stream: onUpdate,
                       builder: (context, snapshot) {
-                        return Text(controller.formaTiempo(),
+                        return Text(formaTiempoFl(),
                             style: const TextStyle(
                                 fontSize: 60, color: Colors.black54));
                       },
                     ),
-                  ),*/
+                  ),
                   Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         IconButton(
                             iconSize: 58,
                             onPressed: () {
-                              setState(() {
-                                //controller.iniciarCrono();
-                              });
+                              if (corriendoFl) {
+                                detenerCronoFl();
+                              } else {
+                                iniciarCronoFl();
+                              }
                             },
-                            icon: const Icon(Icons.play_circle_rounded)),
+                            icon: corriendoFl
+                                ? const Icon(Icons.play_circle_rounded)
+                                : const Icon(Icons.pause_circle_rounded)),
                       ]),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
