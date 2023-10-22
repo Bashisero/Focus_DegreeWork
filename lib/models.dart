@@ -8,7 +8,7 @@ class RegistroPom {
   int numRondasP;
   String tiempoSesionP;
   String anotacionesP;
-  
+
   RegistroPom.empty()
       : nombreSesionP = '',
         fechaP = 0,
@@ -44,6 +44,19 @@ class RegistroPom {
       'tiempoSesionP': tiempoSesionP,
       'anotacionesP': anotacionesP
     };
+  }
+
+  factory RegistroPom.fromMap(Map<String, dynamic> map) {
+    return RegistroPom(
+      nombreSesionP: map['nombreSesionP'],
+      fechaP: map['fechaSesionP'],
+      inicSesionP: map['horaInicioP'],
+      finSesionP: map['horaFinP'],
+      pomodorosP: map['pomodoros'],
+      numRondasP: map['rondas'],
+      tiempoSesionP: map['tiempoSesionP'],
+      anotacionesP: map['anotacionesP'],
+    );
   }
 }
 

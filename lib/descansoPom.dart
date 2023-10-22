@@ -30,6 +30,7 @@ class _DescansoPomState extends State<DescansoPom> {
       if (segundosDP == 0) {
         showDialog(
             context: context,
+            barrierDismissible: false,
             builder: (context) {
               return AlertDialog(
                   title: const Text("Bye"),
@@ -89,7 +90,7 @@ class _DescansoPomState extends State<DescansoPom> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text("Descanso"),
+        title: const Text("Fausto"),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -157,6 +158,7 @@ class _DescansoPomState extends State<DescansoPom> {
           onPressed: () {
             showDialog(
                 context: context,
+                barrierDismissible: false,
                 builder: (context) {
                   return AlertDialog(
                       title: const Text("¿Saltar descanso?"),

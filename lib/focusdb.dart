@@ -21,8 +21,7 @@ class FocusDB {
 
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'focus.db');
-    print('Ruta de la base de datos: $path');
+    final path = join(dbPath, filePath);
 
     final database = await databaseFactoryFfi.openDatabase(path);
 

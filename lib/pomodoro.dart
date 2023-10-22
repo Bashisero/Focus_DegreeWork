@@ -5,6 +5,7 @@ import 'package:tesis/models.dart';
 import 'package:tesis/resultados.dart';
 import 'dart:async';
 import 'main.dart';
+import 'package:intl/intl.dart';
 
 const List<String> list = <String>["00:05", "00:10", "20:00", "25:00", "30:00"];
 String tSesionProv = "";
@@ -13,19 +14,8 @@ RegistroPom ultRegistro = RegistroPom.empty();
 DateTime fechaSesionProv = 0 as DateTime;
 DateTime horaInicioProv = 0 as DateTime;
 DateTime horaFinProv = 0 as DateTime;
-DateTime hoy = DateTime.now();
-/*class _RegistroSesion extends StatelessWidget {
-  final RegistroPom registroP;
+DateTime hoy = 0 as DateTime;
 
-  _RegistroSesion(this.registroP);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(children: [
-      Column(children: [Text(registroP.nombreP)])
-    ]);
-  }
-}*/
 Future<void> addHistory(RegistroPom registro) async {
   final item = RegistroPom(
       nombreSesionP: registro.nombreSesionP,
@@ -36,14 +26,7 @@ Future<void> addHistory(RegistroPom registro) async {
       numRondasP: registro.numRondasP,
       tiempoSesionP: registro.tiempoSesionP,
       anotacionesP: registro.anotacionesP);
-  /*print("nombreSesionP: ${item.nombreSesionP}");
-  print("fechaP: ${item.fechaP}");
-  print("inicSesionP: ${item.inicSesionP}");
-  print("finSesionP: ${item.finSesionP}");
-  print("pomodorosP: ${item.pomodorosP}");
-  print("numRondasP: ${item.numRondasP}");
-  print("tiempoSesionP: ${item.tiempoSesionP}");
-  print("anotacionesP: ${item.anotacionesP}");*/
+
   await FocusDB.instance.insertHistPom(item);
 }
 
@@ -62,9 +45,13 @@ class _PomodoroState extends State<Pomodoro> {
   int segundos = 0;
   bool corriendo = false;
   bool sesionTerminada = false;
+  bool sesionIniciada = false;
   late Timer timer;
   final StreamController<int> _tomatesStreamController =
       StreamController<int>.broadcast();
+  final TextEditingController _textFieldController = TextEditingController();
+  final FocusDB focusDB = FocusDB.instance;
+  List<RegistroPom> registros = [];
 
   void iniciarCrono(int totalTimeInSeconds) {
     if (!corriendo) {
@@ -81,6 +68,7 @@ class _PomodoroState extends State<Pomodoro> {
             rondas++;
             showDialog(
               context: context,
+              barrierDismissible: false,
               builder: (context) {
                 return AlertDialog(
                   title: const Text("¡Has terminado una ronda!"),
@@ -104,6 +92,7 @@ class _PomodoroState extends State<Pomodoro> {
           } else {
             showDialog(
               context: context,
+              barrierDismissible: false,
               builder: (context) {
                 return AlertDialog(
                   title: const Text("¡Has terminado una sesión!"),
@@ -160,9 +149,33 @@ class _PomodoroState extends State<Pomodoro> {
     });
   }
 
+  void resetState() {
+    setState(() {
+      tomates = 0;
+      rondas = 0;
+      cronoVisible = false;
+      sesionTerminada = true;
+      _textFieldController.clear();
+      nombreSesionProv = _textFieldController.value.text;
+      ultRegistro = RegistroPom.empty();
+      sesionIniciada = false;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    _cargarRegistros();
+  }
+
+  Future<void> _cargarRegistros() async {
+    final db = await focusDB.database;
+    var records = await db.query(focusDB.historialPom);
+
+    setState(() {
+      registros =
+          records.map((registro) => RegistroPom.fromMap(registro)).toList();
+    });
   }
 
   @override
@@ -220,6 +233,7 @@ class _PomodoroState extends State<Pomodoro> {
                               nombreSesionProv = value;
                             });
                           },
+                          controller: _textFieldController,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                             labelText: '¿Qué desea realizar?',
@@ -311,11 +325,13 @@ class _PomodoroState extends State<Pomodoro> {
                                 cronoVisible = true;
                                 bloquearDropdown = true;
                               });
+                              hoy = DateTime.now();
                               horaInicioProv = DateTime(
                                   0, 0, 0, hoy.hour, hoy.minute, hoy.second);
                               ultRegistro.inicSesionP =
                                   horaInicioProv.millisecondsSinceEpoch;
                               bloquearNombre();
+                              sesionIniciada = true;
                             } else {
                               ScaffoldMessenger.of(context)
                                   .showSnackBar(const SnackBar(
@@ -332,6 +348,7 @@ class _PomodoroState extends State<Pomodoro> {
                               if (corriendo) {
                                 showDialog(
                                     context: context,
+                                    barrierDismissible: false,
                                     builder: (context) {
                                       return AlertDialog(
                                         title:
@@ -364,36 +381,122 @@ class _PomodoroState extends State<Pomodoro> {
                             }),
                         ElevatedButton(
                             onPressed: () async {
-                              setState(() {
-                                detenerCrono();
-                                ultRegistro.pomodorosP = tomatesTotales;
-                                ultRegistro.numRondasP = rondas;
-                              });
-                              bloquearDropdown = false;
-                              bloquearTextField = false;
-                              cronoVisible = !cronoVisible;
-                              tSesionProv = selectedTime;
-                              //////
-                              ultRegistro.nombreSesionP = nombreSesionProv;
-                              ultRegistro.tiempoSesionP = tSesionProv;
-                              fechaSesionProv =
-                                  DateTime(hoy.year, hoy.month, hoy.day);
-                              ultRegistro.fechaP =
-                                  fechaSesionProv.millisecondsSinceEpoch;
-                              DateTime hoy2 = DateTime.now();
-                              horaFinProv = DateTime(
-                                  0, 0, 0, hoy2.hour, hoy2.minute, hoy2.second);
-                              ultRegistro.finSesionP =
-                                  horaFinProv.millisecondsSinceEpoch;
-                              rondas = 0;
-                              tomatesTotales = 0;
-                              if (ultRegistro.anotacionesP.isEmpty){
-                                ultRegistro.anotacionesP = "Sin comentarios";
+                              if (sesionIniciada) {
+                                showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                          content: const Text(
+                                              '¿Tiene alguna anotación acerca de esta sesión?'),
+                                          title: const Text('Finalizar Sesión'),
+                                          actions: [
+                                            Padding(
+                                              padding: const EdgeInsets.all(13),
+                                              child: TextField(
+                                                  onChanged: (anotacion) {
+                                                    setState(() {
+                                                      ultRegistro.anotacionesP =
+                                                          anotacion;
+                                                    });
+                                                  },
+                                                  decoration:
+                                                      const InputDecoration(
+                                                    border:
+                                                        OutlineInputBorder(),
+                                                    labelText: 'Anotaciones',
+                                                  )),
+                                            ),
+                                            Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceEvenly,
+                                                children: [
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      Navigator.pop(context);
+                                                    },
+                                                    child:
+                                                        const Text("Cancelar"),
+                                                  ),
+                                                  TextButton(
+                                                      onPressed: () async {
+                                                        setState(() {
+                                                          detenerCrono();
+                                                          ultRegistro
+                                                                  .pomodorosP =
+                                                              tomatesTotales;
+                                                          ultRegistro
+                                                                  .numRondasP =
+                                                              rondas;
+                                                        });
+                                                        bloquearDropdown =
+                                                            false;
+                                                        bloquearTextField =
+                                                            false;
+                                                        cronoVisible =
+                                                            !cronoVisible;
+                                                        tSesionProv =
+                                                            selectedTime;
+                                                        //////
+                                                        ultRegistro
+                                                                .nombreSesionP =
+                                                            nombreSesionProv;
+                                                        ultRegistro
+                                                                .tiempoSesionP =
+                                                            tSesionProv;
+                                                        fechaSesionProv =
+                                                            DateTime(
+                                                                hoy.year,
+                                                                hoy.month,
+                                                                hoy.day);
+                                                        ultRegistro.fechaP =
+                                                            fechaSesionProv
+                                                                .millisecondsSinceEpoch;
+                                                        DateTime hoy2 =
+                                                            DateTime.now();
+                                                        horaFinProv = DateTime(
+                                                            0,
+                                                            0,
+                                                            0,
+                                                            hoy2.hour,
+                                                            hoy2.minute,
+                                                            hoy2.second);
+                                                        ultRegistro.finSesionP =
+                                                            horaFinProv
+                                                                .millisecondsSinceEpoch;
+                                                        rondas = 0;
+                                                        tomatesTotales = 0;
+                                                        if (ultRegistro
+                                                            .anotacionesP
+                                                            .isEmpty) {
+                                                          ultRegistro
+                                                                  .anotacionesP =
+                                                              "Sin comentarios";
+                                                        }
+                                                        await addHistory(
+                                                            ultRegistro);
+                                                        resetState();
+                                                        // ignore: use_build_context_synchronously
+                                                        Navigator.pop(context);
+                                                      },
+                                                      child: const Text(
+                                                          "Finalizar"))
+                                                ]),
+                                          ]);
+                                    });
+                              } else {
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(const SnackBar(
+                                  content: Text(
+                                      'No puede finalizar una sesión que no ha iniciado'),
+                                  backgroundColor: Colors.purple,
+                                  duration: Duration(seconds: 2),
+                                ));
                               }
-                                await addHistory(ultRegistro);
                             },
                             child: const Text("Finalizar Sesión")),
-                        ElevatedButton(
+                        /*ElevatedButton(
                             onPressed: () {
                               Navigator.push(
                                   context,
@@ -401,7 +504,7 @@ class _PomodoroState extends State<Pomodoro> {
                                       builder: (context) =>
                                           const Resultados()));
                             },
-                            child: const Text("Ir"))
+                            child: const Text("Ir"))*/
                       ]),
                   StreamBuilder<Object>(
                       stream: _tomatesStreamController.stream,
@@ -445,9 +548,89 @@ class _PomodoroState extends State<Pomodoro> {
             },
           ),
           ListView.builder(
-              itemCount: 5,
-              itemBuilder: (BuildContext context, int index) {
-                //return const ListTile(title: Text("Hola soy un historial"));
+              itemCount: registros.length,
+              reverse: true,
+              itemBuilder: (context, index) {
+                final registro = registros[index];
+                return GestureDetector(
+                    onTap: () {
+                      //print("Se acerca la navidad");
+                    },
+                    child: Card(
+                      child: Row(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              color: const Color.fromARGB(255, 15, 182, 182),
+                              borderRadius: BorderRadius.circular(12.5),
+                            ),
+                            width: 100,
+                            child: Padding(
+                              padding: const EdgeInsets.all(5.0),
+                              child: Text(
+                                "Nombre de la sesión: ${registro.nombreSesionP}",
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.only(left: 4.0, right: 4.0),
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(6.5),
+                                  child: Text(
+                                    "Fecha de la sesión: ${DateFormat('dd/MM/yyyy').format(DateTime.fromMillisecondsSinceEpoch(registro.fechaP))}",
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(6.5),
+                                  child: Text(
+                                      "Sesiones de ${registro.tiempoSesionP}"),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.only(left: 4.0, right: 4.0),
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(6.5),
+                                  child: Text(
+                                    "Hora: ${DateFormat('HH:mm:ss').format(DateTime.fromMillisecondsSinceEpoch(registro.inicSesionP))}",
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(6.5),
+                                  child: Text("Rondas: ${registro.numRondasP}"),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Esto alineará la columna a la derecha de la tarjeta
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      Text("${registro.pomodorosP}"),
+                                      Image.asset('assets/tomatePequeño.png',
+                                          height: 50, width: 50),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ));
               }),
         ]),
       ),
