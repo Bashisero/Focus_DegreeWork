@@ -1,5 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:tesis/drift_database.dart';
 import 'dart:async';
+import 'package:tesis/models.dart';
+import 'package:tesis/detalleFlow.dart';
+
+RegistroFlow ultFlow = RegistroFlow.empty();
+DateTime hoy = 0 as DateTime;
+String nombreFlowProv = '';
+String tFlowProv = '';
+DateTime fechaSesionProv = 0 as DateTime;
+DateTime horaInicioProv = 0 as DateTime;
+DateTime horaFinProv = 0 as DateTime;
 
 class FlowTime extends StatefulWidget {
   const FlowTime({super.key});
@@ -9,13 +22,46 @@ class FlowTime extends StatefulWidget {
 }
 
 class _FlowTimeState extends State<FlowTime> {
-  //final CronometroController controller = CronometroController();
+  final TextEditingController _textFlowController = TextEditingController();
+  bool blockTF = false;
   int intInternas = 0;
   int intExternas = 0;
-
   bool corriendoFl = false;
-  late Timer timerFl;
+  Timer? timerFl;
   int segundosFl = 0;
+  bool sesionIniciada = false;
+
+  Future<void> addHistory(RegistroFlow reg) async {
+    // Crea una instancia de HistorialPom y establece los valores de sus atributos.
+    final nuevoRegistro = HistorialFlowCompanion.insert(
+      nombreSesionF: reg.nombreF,
+      fechaSesionF: reg.fechaF,
+      horaInicioF: reg.inicSesionF,
+      horaFinF: reg.finSesionF,
+      internas: reg.internas,
+      externas: reg.externas,
+      tiempoSesionF: reg.tiempoSesionF,
+      anotacionesF: reg.anotacionesF,
+    );
+
+    // Inserta la instancia en la base de datos Drift.
+    await Provider.of<AppDatabase>(context, listen: false)
+        .into(Provider.of<AppDatabase>(context, listen: false).historialFlow)
+        .insert(nuevoRegistro);
+  }
+
+  String trabajadoAString(int segundos) {
+    Duration duracion = Duration(seconds: segundos);
+
+    int horas = duracion.inHours;
+    int minutos = (duracion.inMinutes % 60);
+    int segundosRestantes = (duracion.inSeconds % 60);
+
+    String tiempoSesion =
+        '${horas.toString().padLeft(2, '0')}:${minutos.toString().padLeft(2, '0')}:${segundosRestantes.toString().padLeft(2, '0')}';
+
+    return tiempoSesion;
+  }
 
   void iniciarCronoFl() {
     if (!corriendoFl) {
@@ -24,35 +70,118 @@ class _FlowTimeState extends State<FlowTime> {
         setState(() {
           segundosFl++;
         });
+        hoy = DateTime.now();
       });
     }
   }
 
   void detenerCronoFl() {
     if (corriendoFl) {
-      showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: const Text("Detener el cronómetro"),
-              content: const Text("¿Está seguro?"),
-              actions: [
-                TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text("Cancelar")),
-                TextButton(
-                  onPressed: (){
-                    Navigator.of(context).pop();
-                    corriendoFl = false;
-                    timerFl.cancel();
-                  },
-                  child: const Text("Detener")
-                )
-              ],
-            );
-          });
+      setState(() {
+        showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: const Text("Detener el cronómetro"),
+                content: const Text(
+                    "¿Está seguro? La sesión terminará con los datos recogidos hasta ahora"),
+                actions: [
+                  TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text("Cancelar")),
+                  TextButton(
+                      onPressed: () async {
+                        if (corriendoFl) {
+                          showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (context) {
+                                return AlertDialog(
+                                  content: const Text(
+                                      '¿Tiene alguna anotación acerca de esta sesión?'),
+                                  title: const Text('Finalizar Sesión'),
+                                  actions: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(13),
+                                      child: TextField(
+                                          onChanged: (anotacion) {
+                                            setState(() {
+                                              ultFlow.anotacionesF = anotacion;
+                                            });
+                                          },
+                                          decoration: const InputDecoration(
+                                            border: OutlineInputBorder(),
+                                            labelText: 'Anotaciones',
+                                          )),
+                                    ),
+                                    Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text("Cancelar"),
+                                          ),
+                                          TextButton(
+                                              onPressed: () async {
+                                                setState(() {
+                                                  detenerCronoFl();
+                                                  ultFlow.internas =
+                                                      intInternas;
+                                                  ultFlow.externas =
+                                                      intExternas;
+                                                  corriendoFl = false;
+                                                  timerFl?.cancel();
+                                                });
+                                                blockTF = false;
+                                                //////
+                                                ultFlow.nombreF =
+                                                    nombreFlowProv;
+                                                fechaSesionProv = DateTime(
+                                                    hoy.year,
+                                                    hoy.month,
+                                                    hoy.day);
+                                                ultFlow.fechaF =
+                                                    fechaSesionProv;
+                                                DateTime hoy2 = DateTime.now();
+                                                horaFinProv = DateTime(
+                                                    0,
+                                                    0,
+                                                    0,
+                                                    hoy2.hour,
+                                                    hoy2.minute,
+                                                    hoy2.second);
+                                                ultFlow.finSesionF =
+                                                    horaFinProv;
+                                                ultFlow.tiempoSesionF =
+                                                    trabajadoAString(
+                                                        segundosFl);
+                                                if (ultFlow
+                                                    .anotacionesF.isEmpty) {
+                                                  ultFlow.anotacionesF =
+                                                      "Ninguna";
+                                                }
+                                                addHistory(ultFlow);
+                                                resetState();
+                                                // ignore: use_build_context_synchronously
+                                                Navigator.popUntil(context, ModalRoute.withName('/flowtime'));
+                                              },
+                                              child: const Text("Finalizar"))
+                                        ]),
+                                  ],
+                                );
+                              });
+                        }
+                      },
+                      child: const Text("Detener"))
+                ],
+              );
+            });
+      });
     }
   }
 
@@ -74,6 +203,18 @@ class _FlowTimeState extends State<FlowTime> {
     return "$horas:$minutos:$segundos";
   }
 
+  void resetState() {
+    setState(() {
+      intInternas = 0;
+      intExternas = 0;
+      segundosFl = 0;
+      _textFlowController.clear();
+      nombreFlowProv = _textFlowController.value.text;
+      ultFlow = RegistroFlow.empty();
+      sesionIniciada = false;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -81,7 +222,7 @@ class _FlowTimeState extends State<FlowTime> {
 
   @override
   void dispose() {
-    detenerCronoFl();
+    timerFl?.cancel();
     super.dispose();
   }
 
@@ -122,15 +263,24 @@ class _FlowTimeState extends State<FlowTime> {
                     padding: const EdgeInsets.all(25.0),
                     child: Image.asset('assets/vientoIcon.png'),
                   ),
-                  const SizedBox(
+                  SizedBox(
                     width: 250,
                     height: 50,
-                    child: TextField(
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: '¿Qué desea realizar?',
+                    child: Stack(children: [
+                      TextField(
+                        enabled: !blockTF,
+                        onChanged: (value) {
+                          setState(() {
+                            nombreFlowProv = value;
+                          });
+                        },
+                        controller: _textFlowController,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: '¿Qué desea realizar?',
+                        ),
                       ),
-                    ),
+                    ]),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(10.0),
@@ -147,17 +297,29 @@ class _FlowTimeState extends State<FlowTime> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         IconButton(
-                            iconSize: 58,
-                            onPressed: () {
-                              if (corriendoFl) {
-                                detenerCronoFl();
+                          iconSize: 58,
+                          onPressed: () {
+                            if (corriendoFl) {
+                              detenerCronoFl();
+                            } else {
+                              if (_textFlowController.value.text.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content:
+                                        Text('Ingresa un nombre de sesión'),
+                                    backgroundColor: Colors.purple,
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
                               } else {
                                 iniciarCronoFl();
                               }
-                            },
-                            icon: corriendoFl
-                                ? const Icon(Icons.play_circle_rounded)
-                                : const Icon(Icons.pause_circle_rounded)),
+                            }
+                          },
+                          icon: corriendoFl
+                              ? const Icon(Icons.pause_circle_rounded)
+                              : const Icon(Icons.play_circle_rounded),
+                        ),
                       ]),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -244,12 +406,116 @@ class _FlowTimeState extends State<FlowTime> {
                 ],
               );
             },
-          ),
-          ListView.builder(
-              itemCount: 5,
-              itemBuilder: (BuildContext context, int index) {
-                return const ListTile(title: Text("Hola soy un historial"));
-              }),
+          ), //////////         HISTORIAL
+          FutureBuilder<List<HistorialFlowData>>(
+            future: Provider.of<AppDatabase>(context).getRegistrosFList(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const CircularProgressIndicator(); // Muestra un indicador de carga mientras se obtienen los datos
+              } else if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}');
+              } else {
+                final registros = snapshot.data;
+                if (registros == null || registros.isEmpty) {
+                  return const Text('No hay registros disponibles');
+                } else {
+                  return ListView.builder(
+                    reverse: true,
+                    itemCount: registros.length,
+                    itemBuilder: (context, index) {
+                      final registro = registros[index];
+                      // Aquí puedes construir un widget para mostrar la información del registro en la posición 'index'
+                      return InkWell(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        DetalleFlow(registro: registro)));
+                          },
+                          child: Card(
+                            child: Row(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color:
+                                        const Color.fromARGB(255, 15, 182, 182),
+                                    borderRadius: BorderRadius.circular(12.5),
+                                  ),
+                                  width: 100,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(5.0),
+                                    child: Text(
+                                      registro.nombreSesionF,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                                Column(
+                                  children: [
+                                    // Primera fila con la fecha y la hora
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              left: 25.0,
+                                              right: 8.0,
+                                              bottom: 8.0),
+                                          child: Text(DateFormat('dd/MM/yyyy')
+                                              .format(registro.fechaSesionF)),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              left: 40.0,
+                                              right: 8.0,
+                                              bottom: 8.0),
+                                          child: Text(DateFormat('HH:mm')
+                                              .format(registro.horaInicioF)),
+                                        ),
+                                      ],
+                                    ),
+                                    // Segunda fila con el número de rondas centrado
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                            "Trabajaste sin parar por: ${registro.tiempoSesionF}"),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                // Esto alineará la columna a la derecha de la tarjeta
+                                Expanded(
+                                  child: Align(
+                                    alignment: Alignment.centerRight,
+                                    child: Column(
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                                "${registro.internas + registro.externas}"),
+                                            const Icon(Icons.star,
+                                                color: Colors.yellow)
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ));
+                    },
+                  );
+                }
+              }
+            },
+          )
         ]),
       ),
     );

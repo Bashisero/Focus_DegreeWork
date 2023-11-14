@@ -1,8 +1,5 @@
 // ignore_for_file: file_names
-
 import 'package:flutter/material.dart';
-import 'package:tesis/pomodoro.dart';
-//import 'pomodoro.dart';
 import 'main.dart';
 import 'dart:async';
 
@@ -132,20 +129,6 @@ class _DescansoPomState extends State<DescansoPom> {
                       child: const Text("Terminar"))),
             ],
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Text(ultRegistro.nombreSesionP.toString()),
-              Text(ultRegistro.fechaP.toString()),
-              Text(ultRegistro.inicSesionP.toString()),
-              Text(ultRegistro.finSesionP.toString()),
-              Text(ultRegistro.numRondasP.toString()),
-              Text(ultRegistro.pomodorosP.toString()),
-              Text(ultRegistro.tiempoSesionP.toString()),
-              Text(ultRegistro.anotacionesP.toString()),
-              Text(tomatesTotales.toString())
-            ]
-          )
         ],
       ),
       bottomNavigationBar: BottomAppBar(
