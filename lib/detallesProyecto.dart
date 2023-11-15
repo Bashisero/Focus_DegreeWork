@@ -13,12 +13,12 @@ class DetallesProyecto extends StatefulWidget {
 }
 
 class _DetallesProyectoState extends State<DetallesProyecto> {
-  
   @override
   void initState() {
     super.initState();
     Provider.of<TareaModel>(context, listen: false)
-        .obtenerTareasDesdeBaseDeDatos(widget.proyecto.idProyecto);
+        .obtenerTareasDesdeBaseDeDatos(widget.proyecto.idProyecto,
+            Provider.of<AppDatabase>(context, listen: false));
   }
 
   @override
@@ -53,8 +53,6 @@ class _DetallesProyectoState extends State<DetallesProyecto> {
                   );
                 } else {
                   return ListView.builder(
-                    // Usa una lista de claves para la lista
-                    key: Key(UniqueKey().toString()),
                     itemCount: tareasNoCompletadas.length,
                     itemBuilder: (context, index) {
                       final tarea = tareasNoCompletadas[index];
@@ -75,8 +73,6 @@ class _DetallesProyectoState extends State<DetallesProyecto> {
                   );
                 } else {
                   return ListView.builder(
-                    // Usa una lista de claves para la lista
-                    key: Key(UniqueKey().toString()),
                     itemCount: tareasCompletadas.length,
                     itemBuilder: (context, index) {
                       final tarea = tareasCompletadas[index];
@@ -121,6 +117,13 @@ class TareaCard extends StatelessWidget {
                 _mostrarDialogoConfirmacion(context, tarea);
               },
               icon: const Icon(Icons.check)),
+          IconButton(
+            onPressed: () {
+              _mostrarDialogoEliminar(context, tarea);
+            },
+            icon: const Icon(Icons.delete),
+            color: Colors.red,
+          )
         ]),
       ),
     );
@@ -143,13 +146,48 @@ class TareaCard extends StatelessWidget {
             ),
             TextButton(
               onPressed: () async {
-                print('Tarea antes del cambio de estado: $tarea');
+                print('Tarea antes del cambio de estado: ${tarea.completada}');
                 await Provider.of<TareaModel>(context, listen: false)
                     .cambiarEstadoTarea(context, tarea);
+                print(
+                    "Estado de la tarea después del cambio: ${tarea.completada}");
                 // ignore: use_build_context_synchronously
                 Navigator.of(context).pop();
               },
               child: const Text("Confirmar"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _mostrarDialogoEliminar(
+      BuildContext context, TareaData tarea) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Eliminar Tarea'),
+          content: Text(
+              '¿Estás seguro de que quieres eliminar "${tarea.nombreTarea}"?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Cerrar el diálogo
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () async {
+                // Aquí iría la lógica para eliminar la tarea de la base de datos
+                await Provider.of<TareaModel>(context, listen: false)
+                    .borrarTarea(context, tarea);
+                // ignore: use_build_context_synchronously
+                Navigator.of(dialogContext)
+                    .pop(); // Cerrar el diálogo después de eliminar
+              },
+              child: const Text('Eliminar'),
             ),
           ],
         );
@@ -248,7 +286,7 @@ class _TareaDialogState extends State<TareaDialog> {
                 nombreController.text,
                 prioridad,
                 anotacionesController.text,
-                false, 
+                false,
                 context,
               );
 

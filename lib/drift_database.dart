@@ -143,10 +143,7 @@ class AppDatabase extends _$AppDatabase {
   Future<int> updateTarea(TareaData item) async {
     return await (update(tarea)
           ..where((tbl) => tbl.idTarea.equals(item.idTarea)))
-        .write(TareaCompanion(
-            completada: Value(item
-                .completada) // Asegúrate de que este valor esté cambiando correctamente
-            ));
+        .write(TareaCompanion(completada: Value(item.completada)));
   }
 
   Future<int> deleteTarea(TareaData item) async {
