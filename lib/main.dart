@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:tesis/achievements.dart';
 import 'package:tesis/drift_database.dart';
 import 'package:tesis/flowtime.dart';
-import 'package:tesis/info.dart';
 import 'package:tesis/models.dart';
 import 'package:tesis/pomodoro.dart';
 import 'package:tesis/projects.dart';
@@ -43,7 +42,6 @@ class MyApp extends StatelessWidget {
           '/proyectos': (context) => const Projects(),
           '/achievements': (context) => const Achievements(),
           '/tools': (context) => const Tools(),
-          '/info': (context) => const Info(),
         },
 
         title: 'Flutter Demo',
@@ -77,7 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void dispose() {
     _pageController.dispose();
-    super.dispose;
+    super.dispose();
   }
 
   void showInfoDialog(BuildContext context) {

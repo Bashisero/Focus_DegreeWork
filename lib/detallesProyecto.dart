@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tesis/drift_database.dart';
 import 'package:tesis/models.dart';
+import 'package:tesis/pomodoro.dart';
 
 class DetallesProyecto extends StatefulWidget {
   final ProyectoData proyecto;
@@ -19,6 +20,11 @@ class _DetallesProyectoState extends State<DetallesProyecto> {
     Provider.of<TareaModel>(context, listen: false)
         .obtenerTareasDesdeBaseDeDatos(widget.proyecto.idProyecto,
             Provider.of<AppDatabase>(context, listen: false));
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -56,7 +62,7 @@ class _DetallesProyectoState extends State<DetallesProyecto> {
                     itemCount: tareasNoCompletadas.length,
                     itemBuilder: (context, index) {
                       final tarea = tareasNoCompletadas[index];
-                      return TareaCard(tarea: tarea);
+                      return TareaCard(tarea: tarea, idProyecto: widget.proyecto.idProyecto,);
                     },
                   );
                 }
@@ -76,7 +82,7 @@ class _DetallesProyectoState extends State<DetallesProyecto> {
                     itemCount: tareasCompletadas.length,
                     itemBuilder: (context, index) {
                       final tarea = tareasCompletadas[index];
-                      return TareaCard(tarea: tarea);
+                      return TareaCard(tarea: tarea, idProyecto: widget.proyecto.idProyecto,);
                     },
                   );
                 }
@@ -101,8 +107,8 @@ class _DetallesProyectoState extends State<DetallesProyecto> {
 
 class TareaCard extends StatelessWidget {
   final TareaData tarea;
-
-  const TareaCard({super.key, required this.tarea});
+  final int idProyecto;
+  const TareaCard({super.key, required this.tarea, required this.idProyecto});
 
   @override
   Widget build(BuildContext context) {
@@ -112,6 +118,25 @@ class TareaCard extends StatelessWidget {
         title: Text(tarea.nombreTarea),
         subtitle: Text(tarea.descripcion),
         trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+          IconButton(
+              onPressed: () {
+                print(
+                    "Enviando a Pomodoro - Tarea ID: ${tarea.idTarea}, Nombre: ${tarea.nombreTarea}");
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => Pomodoro(
+                            nombreSesion: tarea.nombreTarea,
+                            tareaId: tarea.idTarea,
+                            proyectoId: tarea.idProyecto,
+                            urgencia: tarea.urgencia,
+                            descrip: tarea.descripcion))).then((_) {
+                  Provider.of<TareaModel>(context, listen: false)
+                      .obtenerTareasDesdeBaseDeDatos(idProyecto,
+                          Provider.of<AppDatabase>(context, listen: false));
+                });
+              },
+              icon: const Icon(Icons.play_circle)),
           IconButton(
               onPressed: () {
                 _mostrarDialogoConfirmacion(context, tarea);
@@ -146,11 +171,16 @@ class TareaCard extends StatelessWidget {
             ),
             TextButton(
               onPressed: () async {
-                print('Tarea antes del cambio de estado: ${tarea.completada}');
+                print(
+                    'Estado de la tarea antes del cambio de estado: ${tarea.completada}');
                 await Provider.of<TareaModel>(context, listen: false)
                     .cambiarEstadoTarea(context, tarea);
+                TareaData? tareaActualizada =
+                    // ignore: use_build_context_synchronously
+                    await Provider.of<TareaModel>(context, listen: false)
+                        .getTareaPorId(context, tarea.idTarea);
                 print(
-                    "Estado de la tarea después del cambio: ${tarea.completada}");
+                    "Estado de la tarea después del cambio: ${tareaActualizada?.completada}");
                 // ignore: use_build_context_synchronously
                 Navigator.of(context).pop();
               },
@@ -286,7 +316,6 @@ class _TareaDialogState extends State<TareaDialog> {
                 nombreController.text,
                 prioridad,
                 anotacionesController.text,
-                false,
                 context,
               );
 

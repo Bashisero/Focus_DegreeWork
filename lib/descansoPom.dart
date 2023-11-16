@@ -4,6 +4,7 @@ import 'main.dart';
 import 'dart:async';
 
 int tomatesTotales = 0;
+
 class DescansoPom extends StatefulWidget {
   const DescansoPom({super.key});
 
@@ -16,8 +17,8 @@ class _DescansoPomState extends State<DescansoPom> {
   int segundosDP = 0;
   bool descTerminado = false;
 
-  void obtenerTTotales(){
-    tomatesTotales = rondas*4+tomates;
+  void obtenerTTotales() {
+    tomatesTotales = rondas * 4 + tomates;
   }
 
   void iniciarDescanso(int totalTimeInSeconds) {
@@ -35,9 +36,9 @@ class _DescansoPomState extends State<DescansoPom> {
                   actions: [
                     TextButton(
                         onPressed: () {
-                          Navigator.popUntil(
-                              context, ModalRoute.withName('/pomodoro'));
-                          descTerminado = true;
+                          // Esto asegura que todas las pantallas anteriores se eliminen y se cree una nueva instancia de Pomodoro.
+                          Navigator.pop(context);
+                          Navigator.pop(context);
                         },
                         child: const Text("Continuar"))
                   ]);
@@ -121,8 +122,8 @@ class _DescansoPomState extends State<DescansoPom> {
               ),
               Visibility(
                   visible: descTerminado,
-                  child: ElevatedButton(      
-                    // TERMINAR SESIONES POMODORO
+                  child: ElevatedButton(
+                      // TERMINAR SESIONES POMODORO
                       onPressed: () {
                         Navigator.pushNamed(context, '/resultados');
                       },
@@ -150,7 +151,8 @@ class _DescansoPomState extends State<DescansoPom> {
                       actions: [
                         TextButton(
                             onPressed: () {
-                              Navigator.popUntil(context, (ModalRoute.withName('/descansoPom')));
+                              Navigator.popUntil(context,
+                                  (ModalRoute.withName('/descansoPom')));
                             },
                             child: const Text("Continuar")),
                         TextButton(
@@ -158,7 +160,8 @@ class _DescansoPomState extends State<DescansoPom> {
                               setState(() {
                                 timerDP.cancel();
                               });
-                              Navigator.popUntil(context, (ModalRoute.withName('/pomodoro')));
+                              Navigator.popUntil(
+                                  context, (ModalRoute.withName('/pomodoro')));
                             },
                             child: const Text("Saltar descanso"))
                       ]);

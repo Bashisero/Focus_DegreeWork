@@ -1,5 +1,4 @@
 // ignore_for_file: avoid_print, use_build_context_synchronously
-
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -121,7 +120,7 @@ class ProyectoModel extends ChangeNotifier {
 }
 
 class TareaModel extends ChangeNotifier {
-  List<TareaData>? _tareas = [];
+  List<TareaData> _tareas = [];
   List<TareaData>? _tareasNoCompletadas = [];
   List<TareaData>? _tareasCompletadas = [];
 
@@ -177,14 +176,12 @@ class TareaModel extends ChangeNotifier {
   }
 
   void _organizarTareasPorProyecto() {
-    _tareasNoCompletadas =
-        _tareas?.where((tarea) => !tarea.completada).toList() ?? [];
-    _tareasCompletadas =
-        _tareas?.where((tarea) => tarea.completada).toList() ?? [];
+    _tareasNoCompletadas = _tareas.where((tarea) => !tarea.completada).toList();
+    _tareasCompletadas = _tareas.where((tarea) => tarea.completada).toList();
   }
 
   void addTarea(TareaData tarea) {
-    _tareas?.add(tarea);
+    _tareas.add(tarea);
     if (tarea.completada) {
       _tareasCompletadas?.add(tarea);
     } else {
@@ -194,7 +191,7 @@ class TareaModel extends ChangeNotifier {
   }
 
   void removeTarea(TareaData tarea) {
-    _tareas?.remove(tarea);
+    _tareas.remove(tarea);
     if (tarea.completada) {
       _tareasCompletadas?.remove(tarea);
     } else {
@@ -204,21 +201,19 @@ class TareaModel extends ChangeNotifier {
   }
 
   void addNuevaTarea(int idProyectoN, String nuevaTareaNombre, int urgenciaN,
-      String descripcionN, bool completadaN, BuildContext context) async {
-    // Crea una instancia de TareaCompanion con el nombre proporcionado.
+      String descripcionN, BuildContext context) async {
     final tareaCompanion = TareaCompanion.insert(
       idProyecto: idProyectoN,
       nombreTarea: nuevaTareaNombre,
       urgencia: urgenciaN,
       descripcion: descripcionN,
-      completada: Value(completadaN),
+      completada: const Value(
+          false), // Asegúrate de que la tarea se crea como no completada
     );
-    // Inserta la instancia en la base de datos Drift y obtén el ID generado automáticamente.
     // ignore: unused_local_variable
     final id = await Provider.of<AppDatabase>(context, listen: false)
         .into(Provider.of<AppDatabase>(context, listen: false).tarea)
         .insert(tareaCompanion);
-    // Actualiza directamente la lista desde la base de datos
     await obtenerTareasDesdeBaseDeDatos(
         idProyectoN, Provider.of<AppDatabase>(context, listen: false));
     notifyListeners();
@@ -226,12 +221,23 @@ class TareaModel extends ChangeNotifier {
 
   Future<void> cambiarEstadoTarea(BuildContext context, TareaData tarea) async {
     try {
-      // Actualiza el estado de la tarea en la base de datos
-      await Provider.of<AppDatabase>(context, listen: false)
-          .updateTarea(tarea.copyWith(completada: !tarea.completada));
-      // Reobtiene todas las tareas del proyecto actualizado
-      await obtenerTareasDesdeBaseDeDatos(
-          tarea.idProyecto, Provider.of<AppDatabase>(context, listen: false));
+      print("cambiarEstadoTarea - Tarea antes de la actualización: $tarea");
+      TareaData tareaActualizada =
+          await Provider.of<AppDatabase>(context, listen: false)
+              .updateTareaYObtener(tarea.idTarea, !tarea.completada);
+      print(
+          "updateTareaYObtener - Tarea después de la actualización: $tareaActualizada");
+
+      int index = _tareas.indexWhere((t) => t.idTarea == tarea.idTarea);
+      if (index != -1) {
+        _tareas[index] = tareaActualizada;
+      } else {
+        _tareas.add(tareaActualizada);
+      }
+      _organizarTareasPorEstado();
+      print("Lista de tareas actualizada en TareaModel");
+
+      notifyListeners();
     } catch (e) {
       print('Error al cambiar el estado de la tarea: $e');
     }
@@ -249,5 +255,16 @@ class TareaModel extends ChangeNotifier {
       // Aquí podrías manejar cualquier excepción que se produzca en el proceso de eliminación.
       print('Error al eliminar la tarea: $e');
     }
+  }
+
+  // Este método obtiene una tarea específica por su ID.
+  Future<TareaData?> getTareaPorId(BuildContext context, int id) async {
+    return await Provider.of<AppDatabase>(context, listen: false)
+        .getTareaById(id);
+  }
+
+  void _organizarTareasPorEstado() {
+    _tareasNoCompletadas = _tareas.where((t) => !t.completada).toList();
+    _tareasCompletadas = _tareas.where((t) => t.completada).toList();
   }
 }

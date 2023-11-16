@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:tesis/descansoPom.dart';
 import 'package:tesis/detalleRegistro.dart';
@@ -18,7 +20,20 @@ DateTime horaFinProv = 0 as DateTime;
 DateTime hoy = 0 as DateTime;
 
 class Pomodoro extends StatefulWidget {
-  const Pomodoro({Key? key}) : super(key: key);
+  final String? nombreSesion;
+  final int? tareaId;
+  final int? proyectoId;
+  final int? urgencia;
+  final String? descrip;
+
+  const Pomodoro(
+      {Key? key,
+      this.nombreSesion,
+      this.tareaId,
+      this.proyectoId,
+      this.urgencia,
+      this.descrip})
+      : super(key: key);
 
   @override
   State<Pomodoro> createState() => _PomodoroState();
@@ -105,6 +120,7 @@ class _PomodoroState extends State<Pomodoro> {
                   actions: [
                     TextButton(
                       onPressed: () {
+                        Navigator.pop(context);
                         Navigator.pushNamed(context, '/descansoPom');
                       },
                       child: const Text("Continuar"),
@@ -175,6 +191,11 @@ class _PomodoroState extends State<Pomodoro> {
   @override
   void initState() {
     super.initState();
+    if (widget.nombreSesion != null) {
+      nombreSesionProv = widget.nombreSesion!;
+      _textFieldController.text = widget.nombreSesion!;
+      bloquearNombre();
+    }
   }
 
   @override
@@ -392,7 +413,7 @@ class _PomodoroState extends State<Pomodoro> {
                                             Padding(
                                               padding: const EdgeInsets.all(13),
                                               child: TextField(
-                                                  onChanged: (anotacion){
+                                                  onChanged: (anotacion) {
                                                     setState(() {
                                                       ultRegistro.anotacionesP =
                                                           anotacion;
@@ -472,8 +493,9 @@ class _PomodoroState extends State<Pomodoro> {
                                                         }
                                                         addHistory(ultRegistro);
                                                         resetState();
-                                                        // ignore: use_build_context_synchronously
                                                         Navigator.pop(context);
+                                                        _mostrarDialogoTareaCompletada(
+                                                            context);
                                                       },
                                                       child: const Text(
                                                           "Finalizar"))
@@ -646,6 +668,75 @@ class _PomodoroState extends State<Pomodoro> {
           )
         ]),
       ),
+    );
+  }
+
+  Future<void> _cambiarEstadoTareaYMostrarResultado(int tareaId) async {
+    final tareaModel = Provider.of<TareaModel>(context, listen: false);
+    TareaData? tareaAntesDeActualizar =
+        await tareaModel.getTareaPorId(context, tareaId);
+    print("Tarea antes de actualizar en Pomodoro: $tareaAntesDeActualizar");
+
+    if (tareaAntesDeActualizar != null) {
+      await tareaModel.cambiarEstadoTarea(
+          context,
+          tareaAntesDeActualizar.copyWith(
+              completada: !tareaAntesDeActualizar.completada));
+
+      await tareaModel.obtenerTareasDesdeBaseDeDatos(
+          tareaAntesDeActualizar.idProyecto,
+          Provider.of<AppDatabase>(context, listen: false));
+
+      TareaData? tareaActualizada =
+          await tareaModel.getTareaPorId(context, tareaId);
+      print("Tarea después de actualizar en Pomodoro: $tareaActualizada");
+    }
+  }
+
+  Future<void> pruebaDirectaActualizacionTarea(int idTarea) async {
+    var db = Provider.of<AppDatabase>(context, listen: false);
+
+    // Actualiza la tarea directamente en la base de datos
+    await db.updateTarea(TareaData(
+      idTarea: idTarea,
+      nombreTarea: widget.nombreSesion!,
+      completada: true,
+      idProyecto: widget.proyectoId!,
+      urgencia: widget.urgencia!,
+      descripcion: widget.descrip!,
+      // Asegúrate de incluir todos los otros campos necesarios aquí
+    ));
+
+    // Recupera la tarea actualizada para verificar
+    var tareaActualizada = await db.getTareaById(idTarea);
+    print("Tarea directamente actualizada: $tareaActualizada");
+  }
+
+  void _mostrarDialogoTareaCompletada(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Tarea Completada'),
+          content: Text('¿Completaste la tarea "${widget.nombreSesion}"?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('No'),
+            ),
+            TextButton(
+              onPressed: () async {
+                await pruebaDirectaActualizacionTarea(widget.tareaId!);
+                Navigator.of(context).pop();
+                // Considera llamar a setState() aquí si es necesario actualizar la UI
+              },
+              child: const Text('Sí'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
