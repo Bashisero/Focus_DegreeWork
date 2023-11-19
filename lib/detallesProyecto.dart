@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tesis/drift_database.dart';
+import 'package:tesis/flowtime.dart';
 import 'package:tesis/models.dart';
 import 'package:tesis/pomodoro.dart';
 
@@ -54,15 +55,31 @@ class _DetallesProyectoState extends State<DetallesProyecto> {
                     tareaModel.getTareasNoCompletadasPorProyecto(
                         widget.proyecto.idProyecto);
                 if (tareasNoCompletadas.isEmpty) {
-                  return const Center(
-                    child: Text('No hay tareas por hacer.'),
-                  );
+                  return Center(
+                      child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.all(15.0),
+                        child: Text(
+                          'No hay tareas por hacer.',
+                          style: TextStyle(fontSize: 20, color: Colors.black54),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      Image.asset('assets/wombatTareas.png',
+                          height: 320, width: 320),
+                    ],
+                  ));
                 } else {
                   return ListView.builder(
                     itemCount: tareasNoCompletadas.length,
                     itemBuilder: (context, index) {
                       final tarea = tareasNoCompletadas[index];
-                      return TareaCard(tarea: tarea, idProyecto: widget.proyecto.idProyecto,);
+                      return TareaCard(
+                        tarea: tarea,
+                        idProyecto: widget.proyecto.idProyecto,
+                      );
                     },
                   );
                 }
@@ -74,15 +91,31 @@ class _DetallesProyectoState extends State<DetallesProyecto> {
                     tareaModel.getTareasCompletadasPorProyecto(
                         widget.proyecto.idProyecto);
                 if (tareasCompletadas.isEmpty) {
-                  return const Center(
-                    child: Text('No hay tareas hechas.'),
-                  );
+                  return Center(
+                      child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.all(15.0),
+                        child: Text(
+                          'No hay tareas hechas.',
+                          style: TextStyle(fontSize: 20, color: Colors.black54),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      Image.asset('assets/wombatNoHechas.png',
+                          height: 320, width: 320),
+                    ],
+                  ));
                 } else {
                   return ListView.builder(
                     itemCount: tareasCompletadas.length,
                     itemBuilder: (context, index) {
                       final tarea = tareasCompletadas[index];
-                      return TareaCard(tarea: tarea, idProyecto: widget.proyecto.idProyecto,);
+                      return TareaCard(
+                        tarea: tarea,
+                        idProyecto: widget.proyecto.idProyecto,
+                      );
                     },
                   );
                 }
@@ -113,35 +146,102 @@ class TareaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: CardTheme.of(context).color,
       margin: const EdgeInsets.all(10.0),
       child: ListTile(
         title: Text(tarea.nombreTarea),
         subtitle: Text(tarea.descripcion),
         trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-          IconButton(
-              onPressed: () {
-                print(
-                    "Enviando a Pomodoro - Tarea ID: ${tarea.idTarea}, Nombre: ${tarea.nombreTarea}");
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => Pomodoro(
-                            nombreSesion: tarea.nombreTarea,
-                            tareaId: tarea.idTarea,
-                            proyectoId: tarea.idProyecto,
-                            urgencia: tarea.urgencia,
-                            descrip: tarea.descripcion))).then((_) {
-                  Provider.of<TareaModel>(context, listen: false)
-                      .obtenerTareasDesdeBaseDeDatos(idProyecto,
-                          Provider.of<AppDatabase>(context, listen: false));
-                });
-              },
-              icon: const Icon(Icons.play_circle)),
-          IconButton(
-              onPressed: () {
-                _mostrarDialogoConfirmacion(context, tarea);
-              },
-              icon: const Icon(Icons.check)),
+          if (!tarea.completada)
+            IconButton(
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                            title: const Text("Realizar Tarea"),
+                            content: Text(
+                                "¿Con qué técnica desea realizar \"${tarea.nombreTarea}?\""),
+                            actions: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  ElevatedButton(
+                                      onPressed: () {
+                                        print(
+                                            "Enviando a Pomodoro - Tarea ID: ${tarea.idTarea}, Nombre: ${tarea.nombreTarea}");
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) => Pomodoro(
+                                                    nombreSesion:
+                                                        tarea.nombreTarea,
+                                                    tareaId: tarea.idTarea,
+                                                    proyectoId:
+                                                        tarea.idProyecto,
+                                                    urgencia: tarea.urgencia,
+                                                    descrip: tarea
+                                                        .descripcion))).then(
+                                            (_) {
+                                          Provider.of<TareaModel>(context,
+                                                  listen: false)
+                                              .obtenerTareasDesdeBaseDeDatos(
+                                                  idProyecto,
+                                                  Provider.of<AppDatabase>(
+                                                      context,
+                                                      listen: false));
+                                        });
+                                      },
+                                      child: const Text("Pomodoro")),
+                                  ElevatedButton(
+                                      onPressed: () {
+                                        print(
+                                            "Enviando a Flowtime - Tarea ID: ${tarea.idTarea}, Nombre: ${tarea.nombreTarea}");
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) => FlowTime(
+                                                    nombreSesion:
+                                                        tarea.nombreTarea,
+                                                    tareaId: tarea.idTarea,
+                                                    proyectoId:
+                                                        tarea.idProyecto,
+                                                    urgencia: tarea.urgencia,
+                                                    descrip: tarea
+                                                        .descripcion))).then(
+                                            (_) {
+                                          Provider.of<TareaModel>(context,
+                                                  listen: false)
+                                              .obtenerTareasDesdeBaseDeDatos(
+                                                  idProyecto,
+                                                  Provider.of<AppDatabase>(
+                                                      context,
+                                                      listen: false));
+                                          Navigator.pop(context);
+                                        });
+                                      },
+                                      child: const Text("Flowtime"))
+                                ],
+                              ),
+                              Center(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text("Cancelar"),
+                                ),
+                              )
+                            ]);
+                      });
+                },
+                icon: const Icon(Icons.play_circle)),
+          if (!tarea.completada)
+            IconButton(
+                onPressed: () {
+                  _mostrarDialogoConfirmacion(context, tarea);
+                },
+                icon: const Icon(Icons.check)),
           IconButton(
             onPressed: () {
               _mostrarDialogoEliminar(context, tarea);

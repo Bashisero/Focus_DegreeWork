@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tesis/achievements.dart';
+import 'package:tesis/lluvia.dart';
 import 'package:tesis/drift_database.dart';
 import 'package:tesis/flowtime.dart';
 import 'package:tesis/models.dart';
@@ -18,6 +18,7 @@ void main() {
       providers: [
         Provider(create: (context) => AppDatabase()),
         ChangeNotifierProvider(create: (context) => ProyectoModel()),
+        ChangeNotifierProvider(create: (context) => IdeasState()),
         ChangeNotifierProvider(
             create: (context) => TareaModel()), // Agregado para TareaModel
         // Otros providers, si los tienes
@@ -40,15 +41,20 @@ class MyApp extends StatelessWidget {
           '/pomodoro': (context) => const Pomodoro(),
           '/flowtime': (context) => const FlowTime(),
           '/proyectos': (context) => const Projects(),
-          '/achievements': (context) => const Achievements(),
+          '/lluvia': (context) => const Ideas(),
           '/tools': (context) => const Tools(),
         },
 
         title: 'Flutter Demo',
         debugShowCheckedModeBanner: false, // Remove the debug banner
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF356D64)),
+          primaryColor: const Color(0xFF22142b),
+          cardTheme: const CardTheme(
+            color: Color(0xFFF8ECE0),
+          ),
           useMaterial3: true,
+          scaffoldBackgroundColor: const Color(0xFFFAF5F1),
         ),
         home: const MyHomePage(title: 'Hola'),
       ),
@@ -97,8 +103,8 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: Text(widget.title, style: const TextStyle(color: Colors.white)),
       ),
       body: Stack(
         children: [
@@ -109,20 +115,18 @@ class _MyHomePageState extends State<MyHomePage> {
                 Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      ElevatedButton(
-                        // Botón Pomodoro
-                        onPressed: () {
-                          Navigator.pushNamed(context,
-                              '/pomodoro'); // Navegar a la pantalla de Pomodoro
+                      InkWell(
+                        onTap: () {
+                          Navigator.pushNamed(context, '/pomodoro');
                         },
-                        child: const Text("Pomodoro"),
+                        child: Image.asset('assets/pomodoroButton.png', height: 100, width: 100),
                       ),
-                      ElevatedButton(
+                      InkWell(
                         // Botón FlowTime
-                        onPressed: () {
+                        onTap: () {
                           Navigator.pushNamed(context, '/flowtime');
                         },
-                        child: const Text("FlowTime"),
+                        child: Image.asset('assets/flowTimeButton.png', height: 95, width: 95)
                       )
                     ]),
                 ElevatedButton(
@@ -135,31 +139,17 @@ class _MyHomePageState extends State<MyHomePage> {
                 ElevatedButton(
                   // Botón Logros
                   onPressed: () {
-                    Navigator.pushNamed(context, '/achievements');
+                    Navigator.pushNamed(context, '/lluvia');
                   },
-                  child: const Text("Logros"),
+                  child: const Text("Lluvia"),
                 ),
-                ElevatedButton(
-                  // Botón Herramientas adicionales
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/tools');
-                  },
-                  child: const Text("Herramientas adicionales"),
-                ),
-                Container(
-                  color: Colors.lightBlueAccent,
-                  width: 300,
-                  height: 150,
-                  margin: const EdgeInsets.all(40.0),
-                  child: const Text(
-                      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus vestibulum mauris non dui sollicitudin consequat. Aliquam et massa ornare, tempus enim id, faucibus odio. Nullam laoreet porta mi at tincidunt. Fusce dapibus pharetra ex sed finibus. Etiam luctus elit sed nibh tincidunt bibendum. '),
-                )
+                const SizedBox(height: 150),
               ],
             ),
           ),
           Positioned(
             right: 20,
-            bottom: 560,
+            bottom: 470,
             child: Container(
               padding: EdgeInsets.zero,
               decoration: const BoxDecoration(
@@ -175,7 +165,22 @@ class _MyHomePageState extends State<MyHomePage> {
                 padding: EdgeInsets.zero,
               ),
             ),
-          )
+          ),
+          Positioned(
+            right: 0,
+            bottom: 100,
+            child: Image.asset(
+              'assets/tablero.png',
+              height: 150,
+              width: 400,
+            ),
+          ),
+          Positioned(
+            right: 270,
+            bottom: 60,
+            child: Image.asset('assets/wombatTablero.png',
+                height: 110, width: 100),
+          ),
         ],
       ),
     );
@@ -223,7 +228,7 @@ class InfoDialogContentState extends State<InfoDialogContent> {
     const Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text ('Obando es Gay'),
+        Text('Obando es Gay'),
       ],
     )
     // Agrega más Widgets para las otras páginas siguiendo la misma estructura.

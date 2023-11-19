@@ -47,6 +47,11 @@ class _ProjectsState extends State<Projects> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _futureProyectos = Provider.of<AppDatabase>(context).getProyectos();
@@ -56,15 +61,30 @@ class _ProjectsState extends State<Projects> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Proyectos'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        title:
+            const Text('Proyectos', style: TextStyle(color: Color(0xFFFAF5F1))),
       ),
       body: Consumer<ProyectoModel>(
         builder: (context, proyectoModel, child) {
           final proyectosData = proyectoModel.proyectos;
           if (proyectosData.isEmpty) {
-            return const Center(
-              child: Text(
-                  'No tienes ningún proyecto, empieza con el botón de abajo'),
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.all(15.0),
+                    child: Text(
+                      'No tienes ningún proyecto, empieza con el botón de abajo',
+                      style: TextStyle(fontSize: 20, color: Colors.black54),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Image.asset('assets/wombatVacio.png',
+                      height: 320, width: 320),
+                ],
+              ),
             );
           } else {
             return StaggeredGridView.countBuilder(
@@ -75,9 +95,12 @@ class _ProjectsState extends State<Projects> {
                 return ProyectoCard(
                   proyecto: proyectoData,
                   onDelete: () async {
-                    final proyectoModel = Provider.of<ProyectoModel>(context, listen: false);
-                    await Provider.of<AppDatabase>(context, listen: false).deleteProyecto(proyectoData);
-                    proyectoModel.removeProyecto(proyectoData); // Implementa la lógica para eliminar el proyecto
+                    final proyectoModel =
+                        Provider.of<ProyectoModel>(context, listen: false);
+                    await Provider.of<AppDatabase>(context, listen: false)
+                        .deleteProyecto(proyectoData);
+                    proyectoModel.removeProyecto(
+                        proyectoData); // Implementa la lógica para eliminar el proyecto
                   },
                 );
               },
@@ -153,7 +176,9 @@ class ProyectoCard extends StatelessWidget {
     return InkWell(
       onTap: () {
         Navigator.push(
-          context, MaterialPageRoute(builder: (context)=> DetallesProyecto(proyecto: proyecto)), 
+          context,
+          MaterialPageRoute(
+              builder: (context) => DetallesProyecto(proyecto: proyecto)),
         );
       },
       child: Card(

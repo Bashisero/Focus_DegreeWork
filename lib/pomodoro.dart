@@ -211,7 +211,9 @@ class _PomodoroState extends State<Pomodoro> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text("Pomodoro"),
+          title: const Text("Pomodoro",
+              style: TextStyle(color: Color(0xFFFAF5F1))),
+          backgroundColor: Theme.of(context).colorScheme.primary,
           notificationPredicate: (ScrollNotification notification) {
             return notification.depth == 1;
           },
@@ -220,13 +222,17 @@ class _PomodoroState extends State<Pomodoro> {
           bottom: const TabBar(
             tabs: <Widget>[
               Tab(
-                icon: Icon(Icons.fitness_center),
-                text: "Iniciar",
-              ),
+                  icon: Icon(Icons.fitness_center, color: Color(0xFFFAF5F1)),
+                  child: DefaultTextStyle(
+                    style: TextStyle(color: Color(0xFFFAF5F1)),
+                    child: Text("Iniciar"),
+                  )),
               Tab(
-                icon: Icon(Icons.list_alt_rounded),
-                text: "Historial",
-              ),
+                  icon: Icon(Icons.list_alt_rounded, color: Color(0xFFFAF5F1)),
+                  child: DefaultTextStyle(
+                    style: TextStyle(color: Color(0xFFFAF5F1)),
+                    child: Text("Historial"),
+                  )),
             ],
           ),
         ),
@@ -362,45 +368,51 @@ class _PomodoroState extends State<Pomodoro> {
                           },
                         ),
                         ElevatedButton(
-                            child: const Text("Detener"),
-                            onPressed: () {
-                              if (corriendo) {
-                                showDialog(
-                                    context: context,
-                                    barrierDismissible: false,
-                                    builder: (context) {
-                                      return AlertDialog(
-                                        title:
-                                            const Text('¿Terminar la sesión?'),
-                                        content: const Text(
-                                            'Perderás el progreso de este pomodoro si lo haces'),
-                                        actions: <Widget>[
-                                          TextButton(
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                              },
-                                              child: const Text(
-                                                  "Continuar sesión")),
-                                          TextButton(
-                                            onPressed: () {
-                                              setState(() {
-                                                detenerCrono();
-                                              });
-                                              Navigator.pop(context, 'Detener');
-                                              cronoVisible = !cronoVisible;
-                                              bloquearDropdown = false;
-                                              bloquearTextField = false;
-                                            },
-                                            child: const Text("Detener"),
-                                          )
-                                        ],
-                                      );
-                                    });
-                              }
-                            }),
-                        ElevatedButton(
-                            onPressed: () async {
-                              if (sesionIniciada) {
+                            onPressed: sesionIniciada
+                                ? () {
+                                    if (corriendo) {
+                                      showDialog(
+                                          context: context,
+                                          barrierDismissible: false,
+                                          builder: (context) {
+                                            return AlertDialog(
+                                              title: const Text(
+                                                  '¿Terminar la sesión?'),
+                                              content: const Text(
+                                                  'Perderás el progreso de este pomodoro si lo haces'),
+                                              actions: <Widget>[
+                                                TextButton(
+                                                    onPressed: () {
+                                                      Navigator.pop(context);
+                                                    },
+                                                    child: const Text(
+                                                        "Continuar sesión")),
+                                                TextButton(
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      detenerCrono();
+                                                    });
+                                                    Navigator.pop(
+                                                        context, 'Detener');
+                                                    cronoVisible =
+                                                        !cronoVisible;
+                                                    bloquearDropdown = false;
+                                                    bloquearTextField = false;
+                                                  },
+                                                  child: const Text("Detener"),
+                                                )
+                                              ],
+                                            );
+                                          });
+                                    }
+                                  }
+                                : null,
+                            child: const Text("Detener")),
+                      ]),
+                  Center(
+                    child: ElevatedButton(
+                        onPressed: sesionIniciada
+                            ? () async {
                                 showDialog(
                                     context: context,
                                     barrierDismissible: false,
@@ -493,27 +505,26 @@ class _PomodoroState extends State<Pomodoro> {
                                                         }
                                                         addHistory(ultRegistro);
                                                         resetState();
-                                                        Navigator.pop(context);
-                                                        _mostrarDialogoTareaCompletada(
-                                                            context);
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                        if (widget
+                                                                .nombreSesion !=
+                                                            null) {
+                                                          Navigator.of(context)
+                                                              .pop();
+                                                          _mostrarDialogoTareaCompletada(
+                                                              context);
+                                                        }
                                                       },
                                                       child: const Text(
                                                           "Finalizar"))
                                                 ]),
                                           ]);
                                     });
-                              } else {
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(const SnackBar(
-                                  content: Text(
-                                      'No puede finalizar una sesión que no ha iniciado'),
-                                  backgroundColor: Colors.purple,
-                                  duration: Duration(seconds: 2),
-                                ));
                               }
-                            },
-                            child: const Text("Finalizar Sesión")),
-                      ]),
+                            : null,
+                        child: const Text("Finalizar Sesión")),
+                  ),
                   StreamBuilder<Object>(
                       stream: _tomatesStreamController.stream,
                       initialData: tomates,
@@ -565,7 +576,14 @@ class _PomodoroState extends State<Pomodoro> {
               } else {
                 final registros = snapshot.data;
                 if (registros == null || registros.isEmpty) {
-                  return const Text('No hay registros disponibles');
+                  return const Center(
+                      child: Text(
+                    'Aún no hay registros',
+                    style: TextStyle(
+                      fontSize: 24,
+                      color: Colors.black54,
+                    ),
+                  ));
                 } else {
                   return ListView.builder(
                     reverse: true,
@@ -586,8 +604,8 @@ class _PomodoroState extends State<Pomodoro> {
                               children: [
                                 Container(
                                   decoration: BoxDecoration(
-                                    color:
-                                        const Color.fromARGB(255, 15, 182, 182),
+                                    color: const Color(0xFFFFD37A)
+                                        .withOpacity(0.5),
                                     borderRadius: BorderRadius.circular(12.5),
                                   ),
                                   width: 100,
@@ -671,28 +689,6 @@ class _PomodoroState extends State<Pomodoro> {
     );
   }
 
-  Future<void> _cambiarEstadoTareaYMostrarResultado(int tareaId) async {
-    final tareaModel = Provider.of<TareaModel>(context, listen: false);
-    TareaData? tareaAntesDeActualizar =
-        await tareaModel.getTareaPorId(context, tareaId);
-    print("Tarea antes de actualizar en Pomodoro: $tareaAntesDeActualizar");
-
-    if (tareaAntesDeActualizar != null) {
-      await tareaModel.cambiarEstadoTarea(
-          context,
-          tareaAntesDeActualizar.copyWith(
-              completada: !tareaAntesDeActualizar.completada));
-
-      await tareaModel.obtenerTareasDesdeBaseDeDatos(
-          tareaAntesDeActualizar.idProyecto,
-          Provider.of<AppDatabase>(context, listen: false));
-
-      TareaData? tareaActualizada =
-          await tareaModel.getTareaPorId(context, tareaId);
-      print("Tarea después de actualizar en Pomodoro: $tareaActualizada");
-    }
-  }
-
   Future<void> pruebaDirectaActualizacionTarea(int idTarea) async {
     var db = Provider.of<AppDatabase>(context, listen: false);
 
@@ -714,6 +710,7 @@ class _PomodoroState extends State<Pomodoro> {
 
   void _mostrarDialogoTareaCompletada(BuildContext context) {
     showDialog(
+      barrierDismissible: false,
       context: context,
       builder: (context) {
         return AlertDialog(
@@ -729,6 +726,8 @@ class _PomodoroState extends State<Pomodoro> {
             TextButton(
               onPressed: () async {
                 await pruebaDirectaActualizacionTarea(widget.tareaId!);
+                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Cierra la pantalla de Flowtime
                 Navigator.of(context).pop();
                 // Considera llamar a setState() aquí si es necesario actualizar la UI
               },

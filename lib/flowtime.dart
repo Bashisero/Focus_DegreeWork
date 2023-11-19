@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -15,7 +17,18 @@ DateTime horaInicioProv = 0 as DateTime;
 DateTime horaFinProv = 0 as DateTime;
 
 class FlowTime extends StatefulWidget {
-  const FlowTime({super.key});
+  final String? nombreSesion;
+  final int? tareaId;
+  final int? proyectoId;
+  final int? urgencia;
+  final String? descrip;
+  const FlowTime(
+      {super.key,
+      this.nombreSesion,
+      this.tareaId,
+      this.proyectoId,
+      this.urgencia,
+      this.descrip});
 
   @override
   State<FlowTime> createState() => _FlowTimeState();
@@ -61,6 +74,12 @@ class _FlowTimeState extends State<FlowTime> {
         '${horas.toString().padLeft(2, '0')}:${minutos.toString().padLeft(2, '0')}:${segundosRestantes.toString().padLeft(2, '0')}';
 
     return tiempoSesion;
+  }
+
+  void bloquearNombre() {
+    setState(() {
+      blockTF = true;
+    });
   }
 
   void iniciarCronoFl() {
@@ -167,8 +186,15 @@ class _FlowTimeState extends State<FlowTime> {
                                                 }
                                                 addHistory(ultFlow);
                                                 resetState();
-                                                // ignore: use_build_context_synchronously
-                                                Navigator.popUntil(context, ModalRoute.withName('/flowtime'));
+                                                Navigator.of(context).pop();
+                                                Navigator.of(context).pop();
+                                                Navigator.of(context).pop();
+                                                if (widget.nombreSesion !=
+                                                    null) {
+                                                  Navigator.of(context).pop();
+                                                  _mostrarDialogoTareaCompletada(
+                                                      context);
+                                                }
                                               },
                                               child: const Text("Finalizar"))
                                         ]),
@@ -218,6 +244,11 @@ class _FlowTimeState extends State<FlowTime> {
   @override
   void initState() {
     super.initState();
+    if (widget.nombreSesion != null) {
+      nombreFlowProv = widget.nombreSesion!;
+      _textFlowController.text = widget.nombreSesion!;
+      bloquearNombre();
+    }
   }
 
   @override
@@ -233,7 +264,9 @@ class _FlowTimeState extends State<FlowTime> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text("Flowtime"),
+          title: const Text("Flowtime",
+              style: TextStyle(color: Color(0xFFFAF5F1))),
+          backgroundColor: Theme.of(context).colorScheme.primary,
           notificationPredicate: (ScrollNotification notification) {
             return notification.depth == 1;
           },
@@ -242,12 +275,16 @@ class _FlowTimeState extends State<FlowTime> {
           bottom: const TabBar(
             tabs: <Widget>[
               Tab(
-                icon: Icon(Icons.air),
-                text: "Iniciar",
+                icon: Icon(Icons.air, color: Color(0xFFFAF5F1)),
+                child: DefaultTextStyle(
+                    style: TextStyle(color: Color(0xFFFAF5F1)),
+                    child: Text("Iniciar")),
               ),
               Tab(
-                icon: Icon(Icons.list_alt_rounded),
-                text: "Historial",
+                icon: Icon(Icons.list_alt_rounded, color: Color(0xFFFAF5F1)),
+                child: DefaultTextStyle(
+                    style: TextStyle(color: Color(0xFFFAF5F1)),
+                    child: Text("Historial")),
               ),
             ],
           ),
@@ -333,10 +370,12 @@ class _FlowTimeState extends State<FlowTime> {
                                 shape: BoxShape.circle),
                             child: IconButton(
                               color: Colors.white,
-                              onPressed: () {
-                                intInternas++;
-                                setState(() {});
-                              },
+                              onPressed: corriendoFl
+                                  ? () {
+                                      intInternas++;
+                                      setState(() {});
+                                    }
+                                  : null,
                               icon: const Icon(Icons.anchor_outlined),
                             ),
                           ),
@@ -371,10 +410,12 @@ class _FlowTimeState extends State<FlowTime> {
                                 shape: BoxShape.circle),
                             child: IconButton(
                               color: Colors.white,
-                              onPressed: () {
-                                intExternas++;
-                                setState(() {});
-                              },
+                              onPressed: corriendoFl
+                                  ? () {
+                                      intExternas++;
+                                      setState(() {});
+                                    }
+                                  : null,
                               icon: const Icon(Icons.sensor_occupied_rounded),
                             ),
                           ),
@@ -417,7 +458,13 @@ class _FlowTimeState extends State<FlowTime> {
               } else {
                 final registros = snapshot.data;
                 if (registros == null || registros.isEmpty) {
-                  return const Text('No hay registros disponibles');
+                  return const Center(
+                      child: Text(
+                    'Aún no hay registros',
+                    style: TextStyle(
+                      fontSize: 24,
+                      color: Colors.black54,),
+                  ));
                 } else {
                   return ListView.builder(
                     reverse: true,
@@ -518,6 +565,56 @@ class _FlowTimeState extends State<FlowTime> {
           )
         ]),
       ),
+    );
+  }
+
+  Future<void> pruebaDirectaActualizacionTarea(int idTarea) async {
+    var db = Provider.of<AppDatabase>(context, listen: false);
+
+    // Actualiza la tarea directamente en la base de datos
+    await db.updateTarea(TareaData(
+      idTarea: idTarea,
+      nombreTarea: widget.nombreSesion!,
+      completada: true,
+      idProyecto: widget.proyectoId!,
+      urgencia: widget.urgencia!,
+      descripcion: widget.descrip!,
+      // Asegúrate de incluir todos los otros campos necesarios aquí
+    ));
+
+    // Recupera la tarea actualizada para verificar
+    var tareaActualizada = await db.getTareaById(idTarea);
+    print("Tarea directamente actualizada: $tareaActualizada");
+  }
+
+  void _mostrarDialogoTareaCompletada(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Tarea Completada'),
+          content: Text('¿Completaste la tarea "${widget.nombreSesion}"?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('No'),
+            ),
+            TextButton(
+              onPressed: () async {
+                await pruebaDirectaActualizacionTarea(widget.tareaId!);
+                // Cierra el diálogo actual y vuelve a la pantalla de Tareas
+                Navigator.of(context).pop(); // Cierra este diálogo
+                Navigator.of(context).pop(); // Cierra la pantalla de Flowtime
+                Navigator.of(context).pop();
+              },
+              child: const Text('Sí'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

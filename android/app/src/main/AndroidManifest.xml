@@ -3,7 +3,7 @@
         android:label="tesis"
         android:name="${applicationName}"
         android:requestLegacyExternalStorage="true"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/wombat_icon">
         <activity
             android:name=".MainActivity"
             android:exported="true"
