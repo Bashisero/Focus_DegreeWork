@@ -107,7 +107,19 @@ class _MyHomePageState extends State<MyHomePage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return const InfoDialogContent();
+        return Dialog(
+          // Cambia AlertDialog por Dialog para más control
+          alignment: Alignment.center, // Esto centra el Dialog en la pantalla
+          child: SingleChildScrollView(
+            // Asegúrate de que el contenido pueda desplazarse
+            child: Container(
+              // Envuelve en un Container para dar un tamaño específico si es necesario
+              width: MediaQuery.of(context).size.width * 0.8,
+              padding: const EdgeInsets.only(),// Añade padding alrededor del contenido del diálogo // por ejemplo, el 80% del ancho de la pantalla
+              child: const InfoDialogContent(),
+            ),
+          ),
+        );
       },
     ).then((_) {
       setState(() {
@@ -118,6 +130,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    Size screenSize = MediaQuery.of(context).size;
+
+    double infoButtonBottomPosition = screenSize.height * 0.57;
+    double infoButtonRightPosition = screenSize.width * 0.05;
+
+    double tableroBottomPosition = screenSize.height * 0.1;
+    double tableroRightPosition = screenSize.width * 0.0;
+
+    double wombatBottomPosition = screenSize.height * 0.05;
+    double wombatRightPosition = screenSize.width * 0.68;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -247,8 +269,8 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           Positioned(
-            right: 20,
-            bottom: 470,
+            right: infoButtonRightPosition,
+            bottom: infoButtonBottomPosition,
             child: Container(
               padding: EdgeInsets.zero,
               decoration: const BoxDecoration(
@@ -282,8 +304,8 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           Positioned(
-              right: 0,
-              bottom: 100,
+              right: tableroRightPosition,
+              bottom: tableroBottomPosition,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
@@ -311,8 +333,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               )),
           Positioned(
-            right: 270,
-            bottom: 60,
+            right: wombatRightPosition,
+            bottom: wombatBottomPosition,
             child: Image.asset('assets/wombatTablero.png',
                 height: 110, width: 100),
           ),
@@ -338,32 +360,42 @@ class InfoDialogContentState extends State<InfoDialogContent> {
     const Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text('Bienvenido a [...]'),
-        Text('Esta aplicación está pensada para ...'),
+        Center(child: Text('Bienvenido a ZenTasker', style: estiloTitulos)),
+        Text(
+            'Esta aplicación está pensada para brindar un espacio en el que cuentes con ciertas herramientas para propiciar hábitos con los que mejorar tu efectividad al momento de estudiar, trabajar, o llevar a cabo algo de tu interés. Tales como Pomodoro, Flowtime, registro de tareas y de tus sesiones realizadas'),
       ],
     ),
     const Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text('¿Conoces la técnica Pomodoro?'),
+        Center(
+            child: Text(
+          '¿Te cuesta llevar a cabo tareas extensas y enfocarte en ellas?',
+          style: estiloTitulos,
+          textAlign: TextAlign.center,
+        )),
         Text(
-            'Pomodoro se trata de una técnica para [...], funciona de forma que [...]'),
-        Text('¿Qué tal si le echas un vistazo?'),
+            'Pomodoro se trata de una técnica para dividir tus tareas en secciones fijas de tiempo, con descansos entre cada una de estas secciones. Esto es especialmente útil para tareas mecánicas, repetitivas, y/o extensas, pues evita un mayor desgaste físico y mental.'),
+        Padding(
+          padding: EdgeInsets.only(top: 12.0, bottom: 5.0),
+          child: Text('¿Qué tal si le echas un vistazo?'),
+        ),
       ],
     ),
     const Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text('¿Conoces la(te) herramienta FlowTime?'),
+        Center(child: Text('Déjate llevar', style: estiloTitulos,)),
         Text(
-            'FlowTime se trata de una(te) herramienta para [...], funciona de forma que [...]'),
+            'FlowTime se trata de una técnica basada en la teoría del flujo, la cual consiste en esos momentos en los que estás absorbido por una actividad en concreta y pierdes incluso la noción del tiempo, pudiendo desenvolverte en esto indefinidamente. Tiene un enfoque mayormente enfocado a tareas de creativas, de análisis, y resolución de problemas'),
         Text('¿Cómo funciona?'),
       ],
     ),
     const Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text('Obando es Gay'),
+        Center(child: Text('Organiza tus actividades', style: estiloTitulos)),
+        Text('Llevar un control visual de tus pendientes, sea trabajo o proyectos personales, es una gran forma de empezar a visualizar tu progreso, tu rendimiento, ¡E incluso tu motivación para hacer algo!'),
       ],
     )
     // Agrega más Widgets para las otras páginas siguiendo la misma estructura.

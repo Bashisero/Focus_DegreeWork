@@ -137,11 +137,21 @@ class _ProjectsState extends State<Projects> {
                     children: [
                       TextButton(
                         onPressed: () {
-                          ProyectoModel proyectoModel =
-                              Provider.of<ProyectoModel>(context,
-                                  listen: false);
-                          proyectoModel.addNuevoProyecto(nombreProy, context);
-                          Navigator.pop(context);
+                          if (nombreProy == '' || nombreProy.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Asígnale un nombre al proyecto',
+                                    style: TextStyle(color: Colors.white)),
+                              ),
+                            );
+                          } else {
+                            ProyectoModel proyectoModel =
+                                Provider.of<ProyectoModel>(context,
+                                    listen: false);
+                            proyectoModel.addNuevoProyecto(nombreProy, context);
+                            Navigator.pop(context);
+                            nombreProy = '';
+                          }
                         },
                         child: const Text("Crear"),
                       ),
@@ -193,9 +203,31 @@ class ProyectoCard extends StatelessWidget {
               top: 5,
               right: 5,
               child: IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: onDelete,
-              ),
+                  icon: const Icon(Icons.close),
+                  onPressed: () {
+                    showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                              title:
+                                  const Text('¿Deseas eliminar este proyecto?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text('Cancelar'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    onDelete();
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text('Eliminar'),
+                                )
+                              ]);
+                        });
+                  }),
             ),
           ],
         ),

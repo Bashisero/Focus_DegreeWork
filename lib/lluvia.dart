@@ -166,8 +166,8 @@ class _IdeasState extends State<Ideas> {
                             label: Text('Home'),
                           ),
                           NavigationRailDestination(
-                              icon: Icon(Icons.keyboard),
-                              label: Text('Keyboard')),
+                              icon: Icon(Icons.loop_rounded),
+                              label: Text('Descartadas')),
                           NavigationRailDestination(
                             icon: Icon(Icons.favorite),
                             label: Text('Favorites'),

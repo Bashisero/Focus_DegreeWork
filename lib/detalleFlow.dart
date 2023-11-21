@@ -80,7 +80,7 @@ class DetalleFlow extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text("Rondas de 4 Pomodoros:",
+                  const Text("Interrupciones Externas:",
                       style: estiloHistoriales),
                   Text(registro.externas.toString()),
                   const Icon(Icons.sensor_occupied_outlined)
@@ -99,7 +99,7 @@ class DetalleFlow extends StatelessWidget {
             SingleChildScrollView(
               child: Column(
                 children: [
-                  // Parte superior con el título "Anotaciones" en un cuadro rojo
+                  // Parte superior con el título "Anotaciones"
                   Padding(
                     padding: const EdgeInsets.only(top: 30.0),
                     child: Container(
@@ -126,7 +126,8 @@ class DetalleFlow extends StatelessWidget {
                       horizontal: 16.0,
                       vertical: 16.0,
                     ),
-                    constraints: const BoxConstraints(maxHeight: 250),
+                    constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height * 0.3),
                     width: double.infinity, // Ajusta la altura máxima
                     child: SingleChildScrollView(
                       child: Text(

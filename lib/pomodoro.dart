@@ -229,7 +229,7 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
     if (state == AppLifecycleState.paused) {
       // La app ha pasado a segundo plano
       detenerCrono();
-    } else if (state == AppLifecycleState.resumed) {
+    } else if (state == AppLifecycleState.resumed && corriendo) {
       // La app ha vuelto a primer plano
       if (sesionIniciada) {
         iniciarCrono(segundos); // Reanuda el cronómetro con el tiempo restante
@@ -369,35 +369,38 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         ElevatedButton(
-                          onPressed: corriendo == false ? () {
-                            if (nombreSesionProv.isNotEmpty) {
-                              final timeParts = selectedTime.split(':');
-                              final minutes = int.parse(timeParts[0]);
-                              final seconds = int.parse(timeParts[1]);
-                              final totalTimeInSeconds =
-                                  (minutes * 60) + seconds;
-                              setState(() {
-                                iniciarCrono(totalTimeInSeconds);
-                                cronoVisible = true;
-                                bloquearDropdown = true;
-                              });
-                              if (sesionIniciada == false) {
-                                hoy = DateTime.now();
-                                horaInicioProv = DateTime(
-                                    0, 0, 0, hoy.hour, hoy.minute, hoy.second);
-                                ultRegistro.inicSesionP = horaInicioProv;
-                              }
-                              bloquearNombre();
-                              sesionIniciada = true;
-                            } else {
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(
-                                content: Text('Ingresa un nombre de sesión'),
-                                backgroundColor: Colors.purple,
-                                duration: Duration(seconds: 2),
-                              ));
-                            }
-                          } : null,
+                          onPressed: corriendo == false
+                              ? () {
+                                  if (nombreSesionProv.isNotEmpty) {
+                                    final timeParts = selectedTime.split(':');
+                                    final minutes = int.parse(timeParts[0]);
+                                    final seconds = int.parse(timeParts[1]);
+                                    final totalTimeInSeconds =
+                                        (minutes * 60) + seconds;
+                                    setState(() {
+                                      iniciarCrono(totalTimeInSeconds);
+                                      cronoVisible = true;
+                                      bloquearDropdown = true;
+                                    });
+                                    if (sesionIniciada == false) {
+                                      hoy = DateTime.now();
+                                      horaInicioProv = DateTime(0, 0, 0,
+                                          hoy.hour, hoy.minute, hoy.second);
+                                      ultRegistro.inicSesionP = horaInicioProv;
+                                    }
+                                    bloquearNombre();
+                                    sesionIniciada = true;
+                                  } else {
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(const SnackBar(
+                                      content:
+                                          Text('Ingresa un nombre de sesión'),
+                                      backgroundColor: Colors.purple,
+                                      duration: Duration(seconds: 2),
+                                    ));
+                                  }
+                                }
+                              : null,
                           child: const Text("Iniciar"),
                         ),
                         ElevatedButton(
@@ -441,7 +444,9 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
                       ]),
                   Center(
                     child: ElevatedButton(
-                        onPressed: sesionIniciada && corriendo == false && tomates > 0
+                        onPressed: sesionIniciada &&
+                                corriendo == false &&
+                                (tomates > 0 || rondas > 0)
                             ? () async {
                                 showDialog(
                                     context: context,
@@ -540,8 +545,6 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
                                                         if (widget
                                                                 .nombreSesion !=
                                                             null) {
-                                                          Navigator.of(context)
-                                                              .pop();
                                                           _mostrarDialogoTareaCompletada(
                                                               context);
                                                         }

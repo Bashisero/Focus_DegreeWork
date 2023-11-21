@@ -112,7 +112,7 @@ class _DescansoPomState extends State<DescansoPom> {
               ),
             ),
           ),
-          Image.asset('assets/descanso.gif', height: 300, width: 300),
+          Image.asset('assets/descansoWombat.png', height: 300, width: 300),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -158,8 +158,7 @@ class _DescansoPomState extends State<DescansoPom> {
                       actions: [
                         TextButton(
                             onPressed: () {
-                              Navigator.popUntil(context,
-                                  (ModalRoute.withName('/descansoPom')));
+                              Navigator.of(context).pop();
                             },
                             child: const Text("Continuar")),
                         TextButton(
@@ -167,8 +166,8 @@ class _DescansoPomState extends State<DescansoPom> {
                               setState(() {
                                 timerDP.cancel();
                               });
-                              Navigator.popUntil(
-                                  context, (ModalRoute.withName('/pomodoro')));
+                              Navigator.of(context).pop();
+                              Navigator.of(context).pop();
                             },
                             child: const Text("Saltar descanso"))
                       ]);

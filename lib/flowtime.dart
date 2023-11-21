@@ -90,6 +90,8 @@ class _FlowTimeState extends State<FlowTime> {
           segundosFl++;
         });
         hoy = DateTime.now();
+        horaInicioProv = DateTime(0, 0, 0, hoy.hour, hoy.minute, hoy.second);
+        ultFlow.inicSesionF = horaInicioProv;
       });
     }
   }
@@ -157,7 +159,6 @@ class _FlowTimeState extends State<FlowTime> {
                                                   timerFl?.cancel();
                                                 });
                                                 blockTF = false;
-                                                //////
                                                 ultFlow.nombreF =
                                                     nombreFlowProv;
                                                 fechaSesionProv = DateTime(
@@ -191,7 +192,6 @@ class _FlowTimeState extends State<FlowTime> {
                                                 Navigator.of(context).pop();
                                                 if (widget.nombreSesion !=
                                                     null) {
-                                                  Navigator.of(context).pop();
                                                   _mostrarDialogoTareaCompletada(
                                                       context);
                                                 }
@@ -305,7 +305,7 @@ class _FlowTimeState extends State<FlowTime> {
                     height: 50,
                     child: Stack(children: [
                       TextField(
-                        enabled: !blockTF,
+                        enabled: !corriendoFl,
                         onChanged: (value) {
                           setState(() {
                             nombreFlowProv = value;
@@ -376,7 +376,7 @@ class _FlowTimeState extends State<FlowTime> {
                                       setState(() {});
                                     }
                                   : null,
-                              icon: const Icon(Icons.anchor_outlined),
+                              icon: const Icon(Icons.sensor_occupied_rounded),
                             ),
                           ),
                           const Text("Interrupción interna"),
@@ -416,7 +416,7 @@ class _FlowTimeState extends State<FlowTime> {
                                       setState(() {});
                                     }
                                   : null,
-                              icon: const Icon(Icons.sensor_occupied_rounded),
+                              icon: const Icon(Icons.spatial_audio_rounded),
                             ),
                           ),
                           const Text("Interrupción externa"),
@@ -463,7 +463,8 @@ class _FlowTimeState extends State<FlowTime> {
                     'Aún no hay registros',
                     style: TextStyle(
                       fontSize: 24,
-                      color: Colors.black54,),
+                      color: Colors.black54,
+                    ),
                   ));
                 } else {
                   return ListView.builder(
@@ -546,8 +547,10 @@ class _FlowTimeState extends State<FlowTime> {
                                           children: [
                                             Text(
                                                 "${registro.internas + registro.externas}"),
-                                            const Icon(Icons.star,
-                                                color: Colors.yellow)
+                                            const Icon(
+                                              Icons.warning_amber_rounded,
+                                              color: Colors.red,
+                                            )
                                           ],
                                         ),
                                       ],
@@ -608,7 +611,6 @@ class _FlowTimeState extends State<FlowTime> {
                 // Cierra el diálogo actual y vuelve a la pantalla de Tareas
                 Navigator.of(context).pop(); // Cierra este diálogo
                 Navigator.of(context).pop(); // Cierra la pantalla de Flowtime
-                Navigator.of(context).pop();
               },
               child: const Text('Sí'),
             ),

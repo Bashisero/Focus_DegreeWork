@@ -146,7 +146,7 @@ class TareaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: CardTheme.of(context).color,
+      color: _obtenerColorPorUrgencia(tarea.urgencia, context),
       margin: const EdgeInsets.all(10.0),
       child: ListTile(
         title: Text(tarea.nombreTarea),
@@ -254,6 +254,19 @@ class TareaCard extends StatelessWidget {
     );
   }
 
+  Color _obtenerColorPorUrgencia(int urgencia, BuildContext context) {
+    switch (urgencia) {
+      case 1:
+        return const Color(0xffbdecb6); // Color para urgencia baja
+      case 2:
+        return const Color(0xFFFDFD96); // Color para urgencia normal
+      case 3:
+        return const Color(0xFFFF9688); // Color para urgencia alta
+      default:
+        return Theme.of(context).cardColor; // Color por defecto
+    }
+  }
+
   Future<void> _mostrarDialogoConfirmacion(
       BuildContext context, TareaData tarea) async {
     return showDialog(
@@ -344,61 +357,63 @@ class _TareaDialogState extends State<TareaDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text("Crear Tarea"),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(17),
-            child: TextField(
-              controller: nombreController,
-              onChanged: (nombre) {},
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Nombre de la Tarea',
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(17),
+              child: TextField(
+                controller: nombreController,
+                onChanged: (nombre) {},
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Nombre de la Tarea',
+                ),
               ),
             ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              const Text("Prioridad: "),
-              DropdownButton<int>(
-                value: prioridad,
-                onChanged: (value) {
-                  setState(() {
-                    prioridad = value!;
-                  });
-                },
-                items: const [
-                  DropdownMenuItem<int>(
-                    value: 1,
-                    child: Text('Baja'),
-                  ),
-                  DropdownMenuItem<int>(
-                    value: 2,
-                    child: Text('Normal'),
-                  ),
-                  DropdownMenuItem<int>(
-                    value: 3,
-                    child: Text('Alta'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.all(1.0),
-            child: TextField(
-              controller: anotacionesController,
-              onChanged: (anotaciones) {},
-              maxLines: 3,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Anotaciones de la Tarea (Opcional)',
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                const Text("Prioridad: "),
+                DropdownButton<int>(
+                  value: prioridad,
+                  onChanged: (value) {
+                    setState(() {
+                      prioridad = value!;
+                    });
+                  },
+                  items: const [
+                    DropdownMenuItem<int>(
+                      value: 1,
+                      child: Text('Baja'),
+                    ),
+                    DropdownMenuItem<int>(
+                      value: 2,
+                      child: Text('Normal'),
+                    ),
+                    DropdownMenuItem<int>(
+                      value: 3,
+                      child: Text('Alta'),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          )
-        ],
+            Padding(
+              padding: const EdgeInsets.all(1.0),
+              child: TextField(
+                controller: anotacionesController,
+                onChanged: (anotaciones) {},
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Anotaciones de la Tarea (Opcional)',
+                ),
+              ),
+            )
+          ],
+        ),
       ),
       actions: [
         TextButton(
@@ -406,7 +421,8 @@ class _TareaDialogState extends State<TareaDialog> {
             if (nombreController.text == "" || nombreController.text.isEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Asígnale un nombre a la tarea'),
+                  content: Text('Asígnale un nombre a la tarea',
+                      style: TextStyle(color: Colors.white)),
                 ),
               );
             } else {
