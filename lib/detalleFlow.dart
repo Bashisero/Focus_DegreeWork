@@ -14,7 +14,10 @@ class DetalleFlow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(registro.nombreSesionF),
+        title: Text(registro.nombreSesionF,
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.bold)),
       ),
       body: Container(
         padding: const EdgeInsets.all(16.0),
@@ -65,7 +68,8 @@ class DetalleFlow extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text("Interrupciones Internas:", style: estiloHistoriales),
+                  const Text("Interrupciones Internas:",
+                      style: estiloHistoriales),
                   Text(registro.internas.toString()),
                   const Icon(Icons.anchor_outlined)
                 ],
@@ -76,7 +80,8 @@ class DetalleFlow extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text("Rondas de 4 Pomodoros:", style: estiloHistoriales),
+                  const Text("Rondas de 4 Pomodoros:",
+                      style: estiloHistoriales),
                   Text(registro.externas.toString()),
                   const Icon(Icons.sensor_occupied_outlined)
                 ],

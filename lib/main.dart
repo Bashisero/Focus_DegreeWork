@@ -1,5 +1,7 @@
+import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:tesis/consejos.dart';
 import 'package:tesis/lluvia.dart';
 import 'package:tesis/drift_database.dart';
 import 'package:tesis/flowtime.dart';
@@ -33,8 +35,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Provider(
-      create: (context) => AppDatabase(),
+    return FeatureDiscovery(
       child: MaterialApp(
         routes: {
           '/descansoPom': (context) => const DescansoPom(),
@@ -44,9 +45,8 @@ class MyApp extends StatelessWidget {
           '/lluvia': (context) => const Ideas(),
           '/tools': (context) => const Tools(),
         },
-
         title: 'Flutter Demo',
-        debugShowCheckedModeBanner: false, // Remove the debug banner
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF356D64)),
           primaryColor: const Color(0xFF22142b),
@@ -56,7 +56,7 @@ class MyApp extends StatelessWidget {
           useMaterial3: true,
           scaffoldBackgroundColor: const Color(0xFFFAF5F1),
         ),
-        home: const MyHomePage(title: 'Hola'),
+        home: const MyHomePage(title: 'ZenTasker'),
       ),
     );
   }
@@ -75,8 +75,26 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final PageController _pageController = PageController(initialPage: 0);
+  String consejoAleatorio = '';
   // ignore: unused_field
   int _currentPage = 0;
+  bool tutorialShown = false;
+
+  @override
+  void initState() {
+    FeatureDiscovery.discoverFeatures(
+      context,
+      <String>{
+        'pomodoroId',
+        'flowtimeId',
+        'proyectosId',
+        'lluviaId',
+        'infoId'
+      }, // IDs de las características que quieres mostrar.
+    );
+    consejoAleatorio = ConsejosProvider.obtenerConsejoAleatorio();
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -92,7 +110,6 @@ class _MyHomePageState extends State<MyHomePage> {
         return const InfoDialogContent();
       },
     ).then((_) {
-      // Restablece el _currentPage cuando el diálogo se cierre
       setState(() {
         _currentPage = 0;
       });
@@ -115,33 +132,115 @@ class _MyHomePageState extends State<MyHomePage> {
                 Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      InkWell(
-                        onTap: () {
-                          Navigator.pushNamed(context, '/pomodoro');
-                        },
-                        child: Image.asset('assets/pomodoroButton.png', height: 100, width: 100),
+                      DescribedFeatureOverlay(
+                        featureId: 'pomodoroId',
+                        title: const Text('Técnica Pomodoro'),
+                        backgroundColor: Theme.of(context).primaryColor,
+                        backgroundOpacity: 0.7,
+                        targetColor: Colors.white,
+                        textColor: Colors.white,
+                        overflowMode: OverflowMode.extendBackground,
+                        description: const Text(
+                          'Pomodoro te permite trabajar usando sesiones de tiempos establecidos con descansos periódicos fijos',
+                        ),
+                        tapTarget: Image.asset('assets/wombatTomate.png'),
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.pushNamed(context, '/pomodoro').then((_) {
+                              setState(() {
+                                consejoAleatorio =
+                                    ConsejosProvider.obtenerConsejoAleatorio();
+                              });
+                            });
+                          },
+                          child: Image.asset('assets/pomodoroButton.png',
+                              height: 100, width: 100),
+                        ),
                       ),
-                      InkWell(
-                        // Botón FlowTime
-                        onTap: () {
-                          Navigator.pushNamed(context, '/flowtime');
-                        },
-                        child: Image.asset('assets/flowTimeButton.png', height: 95, width: 95)
+                      DescribedFeatureOverlay(
+                        featureId: 'flowtimeId',
+                        title: const Text('Técnica Flowtime'),
+                        backgroundColor: Theme.of(context).primaryColor,
+                        targetColor: Colors.white,
+                        textColor: Colors.white,
+                        overflowMode: OverflowMode.extendBackground,
+                        backgroundOpacity: 0.7,
+                        tapTarget: Image.asset('assets/wombatFlow.png'),
+                        description: const Text(
+                          'FlowTime te permite trabajar indefinidamente enfocado en una sola tarea, basándose en la teoría del flujo, donde le das rienda suelta a tu capacidad de enfocarte en algo sin noción de tiempo',
+                        ),
+                        child: InkWell(
+                            // Botón FlowTime
+                            onTap: () {
+                              Navigator.pushNamed(context, '/flowtime')
+                                  .then((_) {
+                                setState(() {
+                                  consejoAleatorio = ConsejosProvider
+                                      .obtenerConsejoAleatorio();
+                                });
+                              });
+                            },
+                            child: Image.asset('assets/flowTimeButton.png',
+                                height: 95, width: 95)),
                       )
                     ]),
-                ElevatedButton(
-                  // Botón Proyectos
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/proyectos');
-                  },
-                  child: const Text("Proyectos"),
+                DescribedFeatureOverlay(
+                  featureId: 'proyectosId',
+                  title: const Text('Proyectos'),
+                  backgroundColor: Theme.of(context).primaryColor,
+                  targetColor: Colors.white,
+                  textColor: Colors.white,
+                  overflowMode: OverflowMode.extendBackground,
+                  backgroundOpacity: 0.7,
+                  tapTarget: Image.asset('assets/wombatProyectos.png'),
+                  description: const Text(
+                    '¿No es mejor tener tus actividades anotadas y distribuidas?, aquí puedes tener proyectos divididos en tareas',
+                  ),
+                  child: ElevatedButton(
+                      // Botón Proyectos
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/proyectos').then((_) {
+                          setState(() {
+                            consejoAleatorio =
+                                ConsejosProvider.obtenerConsejoAleatorio();
+                          });
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          elevation: 5),
+                      child: const Text("Proyectos")),
                 ),
-                ElevatedButton(
-                  // Botón Logros
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/lluvia');
-                  },
-                  child: const Text("Lluvia"),
+                DescribedFeatureOverlay(
+                  featureId: 'lluviaId',
+                  title: const Text('Lluvia de Ideas'),
+                  backgroundColor: Theme.of(context).primaryColor,
+                  targetColor: Colors.white,
+                  textColor: Colors.white,
+                  overflowMode: OverflowMode.extendBackground,
+                  backgroundOpacity: 0.7,
+                  tapTarget: Image.asset('assets/wombatIdeas.png'),
+                  description: const Text(
+                    'La clásica lluvia de ideas, en este apartado puedes filtrar qué ideas que se te vienen a la mente te gustan... Y cuáles quizá no tanto',
+                  ),
+                  child: ElevatedButton(
+                    // Botón Logros
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/lluvia').then((_) {
+                        setState(() {
+                          consejoAleatorio =
+                              ConsejosProvider.obtenerConsejoAleatorio();
+                        });
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        elevation: 5),
+                    child: const Text("Lluvia"),
+                  ),
                 ),
                 const SizedBox(height: 150),
               ],
@@ -153,28 +252,64 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Container(
               padding: EdgeInsets.zero,
               decoration: const BoxDecoration(
-                  color: Color.fromARGB(255, 15, 182, 182),
-                  shape: BoxShape.circle),
-              child: IconButton(
-                color: Colors.white,
-                onPressed: () {
-                  showInfoDialog(context);
-                },
-                iconSize: 38,
-                icon: const Icon(Icons.info_outline_rounded),
-                padding: EdgeInsets.zero,
+                  color: Color(0xFFFAF5F1), shape: BoxShape.circle),
+              child: DescribedFeatureOverlay(
+                featureId: 'infoId',
+                title: const Text('Información'),
+                overflowMode: OverflowMode.extendBackground,
+                backgroundOpacity: 0.7,
+                backgroundColor: Theme.of(context).primaryColor,
+                targetColor: Colors.white,
+                textColor: Colors.white,
+                tapTarget: Image.asset('assets/wombatInfo.png'),
+                description: const Text(
+                  'Aquí puedes encontrar información detallada, en caso de que se te olvide algo de lo dicho en este tutorial',
+                ),
+                child: IconButton(
+                  color: Colors.white,
+                  onPressed: () {
+                    showInfoDialog(context);
+                  },
+                  style: IconButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      elevation: 5),
+                  iconSize: 38,
+                  icon: const Icon(Icons.info_outline_rounded),
+                  padding: EdgeInsets.zero,
+                ),
               ),
             ),
           ),
           Positioned(
-            right: 0,
-            bottom: 100,
-            child: Image.asset(
-              'assets/tablero.png',
-              height: 150,
-              width: 400,
-            ),
-          ),
+              right: 0,
+              bottom: 100,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Image.asset(
+                    'assets/tablero.png',
+                    height: 150,
+                    width: 400,
+                  ),
+                  Container(
+                      width: 270,
+                      height: 80, // Ajusta la anchura según tu imagen
+                      padding: const EdgeInsets.all(
+                          0), // Añade un poco de espacio alrededor del texto
+                      child: Text(
+                        consejoAleatorio,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            color: Colors
+                                .black, // Asegúrate de que el color contraste bien con tu imagen
+                            fontSize: 13,
+                            fontWeight: FontWeight
+                                .bold // Ajusta el tamaño del texto como prefieras
+                            ),
+                      ))
+                ],
+              )),
           Positioned(
             right: 270,
             bottom: 60,

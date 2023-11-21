@@ -14,7 +14,10 @@ class DetalleRegistro extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(registro.nombreSesionP),
+        title: Text(registro.nombreSesionP,
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.bold)),
       ),
       body: Container(
         padding: const EdgeInsets.all(16.0),
@@ -23,7 +26,7 @@ class DetalleRegistro extends StatelessWidget {
           children: [
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               const Text("Pomodoro", style: estiloTitulos),
-              Image.asset('assets/tomatePequeño.png', height: 50, width: 50)
+              Image.asset('assets/tomateIcon.png', height: 50, width: 50)
             ]),
             Padding(
               padding: const EdgeInsets.only(top: 24.0, bottom: 12.0),
@@ -68,10 +71,10 @@ class DetalleRegistro extends StatelessWidget {
                   const Text("Pomodoros:", style: estiloHistoriales),
                   Row(
                     children: List.generate(
-                      (registro.pomodorosP ~/ 4)
+                      (registro.pomodorosP % 4)
                           .clamp(0, 3), // Calcula la cantidad de rondas
-                      (index) => Image.asset('assets/tomatePequeño.png',
-                          height: 30, width: 30),
+                      (index) => Image.asset('assets/tomateIcon.png',
+                          height: 40, width: 40),
                     ),
                   ),
                 ],
@@ -82,12 +85,13 @@ class DetalleRegistro extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text("Rondas de 4 Pomodoros:", style: estiloHistoriales),
+                  const Text("Rondas de 4 Pomodoros:",
+                      style: estiloHistoriales),
                   Row(
                     children: List.generate(
                       registro.rondasP,
-                      (index) => Image.asset('assets/tomatePequeñoRonda.png',
-                          height: 30, width: 30),
+                      (index) => Image.asset('assets/golden_tomateIcon.png',
+                          height: 40, width: 40),
                     ),
                   ),
                 ],

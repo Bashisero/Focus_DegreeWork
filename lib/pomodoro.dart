@@ -1,5 +1,4 @@
 // ignore_for_file: avoid_print, use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:tesis/descansoPom.dart';
 import 'package:tesis/detalleRegistro.dart';
@@ -9,6 +8,7 @@ import 'dart:async';
 import 'main.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 const List<String> list = <String>["00:05", "00:10", "20:00", "25:00", "30:00"];
 String tSesionProv = "";
@@ -39,7 +39,7 @@ class Pomodoro extends StatefulWidget {
   State<Pomodoro> createState() => _PomodoroState();
 }
 
-class _PomodoroState extends State<Pomodoro> {
+class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
   String selectedTime = "00:05";
   bool bloquearDropdown = false;
   bool cronoVisible = false;
@@ -51,6 +51,7 @@ class _PomodoroState extends State<Pomodoro> {
   final StreamController<int> _tomatesStreamController =
       StreamController<int>.broadcast();
   final TextEditingController _textFieldController = TextEditingController();
+  final player = AudioPlayer();
 
   Future<void> addHistory(RegistroPom reg) async {
     // Crea una instancia de HistorialPom y establece los valores de sus atributos.
@@ -79,6 +80,8 @@ class _PomodoroState extends State<Pomodoro> {
         segundos--;
         if (segundos == 0) {
           detenerCrono(); // Detener el temporizador
+          player.setReleaseMode(ReleaseMode.loop);
+          player.play(AssetSource('piano.mp3'));
           tomates++;
           _tomatesStreamController.add(tomates);
           if (tomates == 4) {
@@ -96,6 +99,8 @@ class _PomodoroState extends State<Pomodoro> {
                   actions: [
                     TextButton(
                       onPressed: () {
+                        Navigator.pop(context);
+                        player.stop();
                         Navigator.pushNamed(
                           context,
                           '/descansoPom',
@@ -120,7 +125,11 @@ class _PomodoroState extends State<Pomodoro> {
                   actions: [
                     TextButton(
                       onPressed: () {
+                        setState(() {
+                          corriendo = false;
+                        });
                         Navigator.pop(context);
+                        player.stop();
                         Navigator.pushNamed(context, '/descansoPom');
                       },
                       child: const Text("Continuar"),
@@ -178,6 +187,7 @@ class _PomodoroState extends State<Pomodoro> {
 
   void resetState() {
     setState(() {
+      detenerCrono();
       tomates = 0;
       rondas = 0;
       cronoVisible = false;
@@ -185,12 +195,14 @@ class _PomodoroState extends State<Pomodoro> {
       nombreSesionProv = _textFieldController.value.text;
       ultRegistro = RegistroPom.empty();
       sesionIniciada = false;
+      bloquearTextField = false;
     });
   }
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (widget.nombreSesion != null) {
       nombreSesionProv = widget.nombreSesion!;
       _textFieldController.text = widget.nombreSesion!;
@@ -200,8 +212,29 @@ class _PomodoroState extends State<Pomodoro> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     detenerCrono();
+    player.stop();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.paused) {
+      // La app ha pasado a segundo plano
+      detenerCrono();
+    } else if (state == AppLifecycleState.resumed) {
+      // La app ha vuelto a primer plano
+      if (sesionIniciada) {
+        iniciarCrono(segundos); // Reanuda el cronómetro con el tiempo restante
+      }
+    }
   }
 
   @override
@@ -290,8 +323,6 @@ class _PomodoroState extends State<Pomodoro> {
                         onTap: bloquearDropdown
                             ? null
                             : () {
-                                // Lógica para abrir el menú desplegable
-                                // Puedes mostrar un diálogo o cambiar el estado según tus necesidades
                                 showDialog(
                                   context: context,
                                   builder: (BuildContext context) {
@@ -338,8 +369,7 @@ class _PomodoroState extends State<Pomodoro> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         ElevatedButton(
-                          child: const Text("Iniciar"),
-                          onPressed: () {
+                          onPressed: corriendo == false ? () {
                             if (nombreSesionProv.isNotEmpty) {
                               final timeParts = selectedTime.split(':');
                               final minutes = int.parse(timeParts[0]);
@@ -351,10 +381,12 @@ class _PomodoroState extends State<Pomodoro> {
                                 cronoVisible = true;
                                 bloquearDropdown = true;
                               });
-                              hoy = DateTime.now();
-                              horaInicioProv = DateTime(
-                                  0, 0, 0, hoy.hour, hoy.minute, hoy.second);
-                              ultRegistro.inicSesionP = horaInicioProv;
+                              if (sesionIniciada == false) {
+                                hoy = DateTime.now();
+                                horaInicioProv = DateTime(
+                                    0, 0, 0, hoy.hour, hoy.minute, hoy.second);
+                                ultRegistro.inicSesionP = horaInicioProv;
+                              }
                               bloquearNombre();
                               sesionIniciada = true;
                             } else {
@@ -365,53 +397,51 @@ class _PomodoroState extends State<Pomodoro> {
                                 duration: Duration(seconds: 2),
                               ));
                             }
-                          },
+                          } : null,
+                          child: const Text("Iniciar"),
                         ),
                         ElevatedButton(
-                            onPressed: sesionIniciada
+                            onPressed: sesionIniciada && corriendo
                                 ? () {
-                                    if (corriendo) {
-                                      showDialog(
-                                          context: context,
-                                          barrierDismissible: false,
-                                          builder: (context) {
-                                            return AlertDialog(
-                                              title: const Text(
-                                                  '¿Terminar la sesión?'),
-                                              content: const Text(
-                                                  'Perderás el progreso de este pomodoro si lo haces'),
-                                              actions: <Widget>[
-                                                TextButton(
-                                                    onPressed: () {
-                                                      Navigator.pop(context);
-                                                    },
-                                                    child: const Text(
-                                                        "Continuar sesión")),
-                                                TextButton(
+                                    showDialog(
+                                        context: context,
+                                        barrierDismissible: false,
+                                        builder: (context) {
+                                          return AlertDialog(
+                                            title: const Text(
+                                                '¿Terminar la sesión?'),
+                                            content: const Text(
+                                                'Perderás el progreso de este pomodoro si lo haces'),
+                                            actions: <Widget>[
+                                              TextButton(
                                                   onPressed: () {
-                                                    setState(() {
-                                                      detenerCrono();
-                                                    });
-                                                    Navigator.pop(
-                                                        context, 'Detener');
-                                                    cronoVisible =
-                                                        !cronoVisible;
-                                                    bloquearDropdown = false;
-                                                    bloquearTextField = false;
+                                                    Navigator.pop(context);
                                                   },
-                                                  child: const Text("Detener"),
-                                                )
-                                              ],
-                                            );
-                                          });
-                                    }
+                                                  child: const Text(
+                                                      "Continuar sesión")),
+                                              TextButton(
+                                                onPressed: () {
+                                                  setState(() {
+                                                    detenerCrono();
+                                                  });
+                                                  Navigator.pop(
+                                                      context, 'Detener');
+                                                  cronoVisible = !cronoVisible;
+                                                  bloquearDropdown = false;
+                                                  bloquearTextField = false;
+                                                },
+                                                child: const Text("Detener"),
+                                              )
+                                            ],
+                                          );
+                                        });
                                   }
                                 : null,
                             child: const Text("Detener")),
                       ]),
                   Center(
                     child: ElevatedButton(
-                        onPressed: sesionIniciada
+                        onPressed: sesionIniciada && corriendo == false && tomates > 0
                             ? () async {
                                 showDialog(
                                     context: context,
@@ -554,8 +584,8 @@ class _PomodoroState extends State<Pomodoro> {
                                         padding: const EdgeInsets.all(8.0),
                                         child: Image.asset(
                                           activado
-                                              ? 'assets/tomatePequeño.png'
-                                              : 'assets/tomatePrueba.png',
+                                              ? 'assets/tomateIcon.png'
+                                              : 'assets/dark_tomateIcon.png',
                                           width: 50,
                                           height: 50,
                                         ));
@@ -665,10 +695,8 @@ class _PomodoroState extends State<Pomodoro> {
                                               MainAxisAlignment.end,
                                           children: [
                                             Text("${registro.pomodorosP}"),
-                                            Image.asset(
-                                                'assets/tomatePequeño.png',
-                                                height: 50,
-                                                width: 50),
+                                            Image.asset('assets/tomateIcon.png',
+                                                height: 50, width: 50),
                                           ],
                                         ),
                                       ],

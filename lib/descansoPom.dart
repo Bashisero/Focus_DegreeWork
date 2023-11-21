@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'main.dart';
 import 'dart:async';
+import 'package:audioplayers/audioplayers.dart';
 
 int tomatesTotales = 0;
 
@@ -16,6 +17,7 @@ class _DescansoPomState extends State<DescansoPom> {
   late Timer timerDP;
   int segundosDP = 0;
   bool descTerminado = false;
+  final player = AudioPlayer();
 
   void obtenerTTotales() {
     tomatesTotales = rondas * 4 + tomates;
@@ -26,21 +28,24 @@ class _DescansoPomState extends State<DescansoPom> {
     timerDP = Timer.periodic(const Duration(seconds: 1), (timer) {
       segundosDP--;
       if (segundosDP == 0) {
+        player.setReleaseMode(ReleaseMode.loop);
+        player.play(AssetSource('piano.mp3'));
         showDialog(
             context: context,
             barrierDismissible: false,
             builder: (context) {
               return AlertDialog(
-                  title: const Text("Bye"),
-                  content: const Text("Terminó el descanso"),
+                  title: const Text("Terminó el descanso"),
+                  content: const Text(
+                      "¿Qué tal si continúas con lo que estabas haciendo?"),
                   actions: [
                     TextButton(
                         onPressed: () {
-                          // Esto asegura que todas las pantallas anteriores se eliminen y se cree una nueva instancia de Pomodoro.
+                          player.stop();
                           Navigator.pop(context);
                           Navigator.pop(context);
                         },
-                        child: const Text("Continuar"))
+                        child: const Center(child: Text("Continuar")))
                   ]);
             });
         timerDP.cancel();
@@ -80,6 +85,7 @@ class _DescansoPomState extends State<DescansoPom> {
   @override
   void dispose() {
     timerDP.cancel();
+    player.stop();
     super.dispose();
   }
 
@@ -87,8 +93,8 @@ class _DescansoPomState extends State<DescansoPom> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text("Fausto"),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: const Text("Descanso", style: TextStyle(color: Color(0xFFFAF5F1))),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -139,6 +145,7 @@ class _DescansoPomState extends State<DescansoPom> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+          backgroundColor: Theme.of(context).colorScheme.primary,
           onPressed: () {
             showDialog(
                 context: context,
@@ -167,7 +174,7 @@ class _DescansoPomState extends State<DescansoPom> {
                       ]);
                 });
           },
-          child: const Icon(Icons.flaky)),
+          child: const Icon(Icons.skip_next_rounded, color: Color(0xFFFAF5F1))),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
