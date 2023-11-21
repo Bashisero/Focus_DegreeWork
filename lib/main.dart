@@ -9,11 +9,8 @@ import 'package:tesis/models.dart';
 import 'package:tesis/pomodoro.dart';
 import 'package:tesis/projects.dart';
 import 'package:tesis/tools.dart';
-import 'descansoPom.dart';
 
 //
-int tomates = 0;
-int rondas = 0;
 void main() {
   runApp(
     MultiProvider(
@@ -38,7 +35,6 @@ class MyApp extends StatelessWidget {
     return FeatureDiscovery(
       child: MaterialApp(
         routes: {
-          '/descansoPom': (context) => const DescansoPom(),
           '/pomodoro': (context) => const Pomodoro(),
           '/flowtime': (context) => const FlowTime(),
           '/proyectos': (context) => const Projects(),
@@ -114,8 +110,9 @@ class _MyHomePageState extends State<MyHomePage> {
             // Asegúrate de que el contenido pueda desplazarse
             child: Container(
               // Envuelve en un Container para dar un tamaño específico si es necesario
-              width: MediaQuery.of(context).size.width * 0.8,
-              padding: const EdgeInsets.only(),// Añade padding alrededor del contenido del diálogo // por ejemplo, el 80% del ancho de la pantalla
+              width: MediaQuery.of(context).size.width * 0.95,
+              padding: const EdgeInsets
+                  .only(), // Añade padding alrededor del contenido del diálogo // por ejemplo, el 80% del ancho de la pantalla
               child: const InfoDialogContent(),
             ),
           ),
@@ -136,7 +133,7 @@ class _MyHomePageState extends State<MyHomePage> {
     double infoButtonRightPosition = screenSize.width * 0.05;
 
     double tableroBottomPosition = screenSize.height * 0.1;
-    double tableroRightPosition = screenSize.width * 0.0;
+    double tableroRightPosition = screenSize.width * -0.03;
 
     double wombatBottomPosition = screenSize.height * 0.05;
     double wombatRightPosition = screenSize.width * 0.68;
@@ -357,46 +354,87 @@ class InfoDialogContentState extends State<InfoDialogContent> {
 
   // Define una lista de widgets que representen el contenido de cada página.
   final List<Widget> _pagesContent = [
-    const Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Center(child: Text('Bienvenido a ZenTasker', style: estiloTitulos)),
-        Text(
-            'Esta aplicación está pensada para brindar un espacio en el que cuentes con ciertas herramientas para propiciar hábitos con los que mejorar tu efectividad al momento de estudiar, trabajar, o llevar a cabo algo de tu interés. Tales como Pomodoro, Flowtime, registro de tareas y de tus sesiones realizadas'),
-      ],
-    ),
-    const Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Center(
+    const SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Center(
+              child: Text('Bienvenido a ZenTasker',
+                  style: estiloTitulos, textAlign: TextAlign.center)),
+          Padding(
+            padding: EdgeInsets.only(top: 25.0),
             child: Text(
-          '¿Te cuesta llevar a cabo tareas extensas y enfocarte en ellas?',
-          style: estiloTitulos,
-          textAlign: TextAlign.center,
-        )),
-        Text(
-            'Pomodoro se trata de una técnica para dividir tus tareas en secciones fijas de tiempo, con descansos entre cada una de estas secciones. Esto es especialmente útil para tareas mecánicas, repetitivas, y/o extensas, pues evita un mayor desgaste físico y mental.'),
-        Padding(
-          padding: EdgeInsets.only(top: 12.0, bottom: 5.0),
-          child: Text('¿Qué tal si le echas un vistazo?'),
-        ),
-      ],
+                'Esta aplicación está pensada para brindar un espacio en el que cuentes con ciertas herramientas para propiciar hábitos con los que mejorar tu efectividad al momento de estudiar, trabajar, o llevar a cabo algo de tu interés. Tales como Pomodoro, Flowtime, registros de tus tareas, y registros de tus sesiones realizadas',
+                textAlign: TextAlign.center),
+          ),
+        ],
+      ),
     ),
-    const Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Center(child: Text('Déjate llevar', style: estiloTitulos,)),
-        Text(
-            'FlowTime se trata de una técnica basada en la teoría del flujo, la cual consiste en esos momentos en los que estás absorbido por una actividad en concreta y pierdes incluso la noción del tiempo, pudiendo desenvolverte en esto indefinidamente. Tiene un enfoque mayormente enfocado a tareas de creativas, de análisis, y resolución de problemas'),
-        Text('¿Cómo funciona?'),
-      ],
+    const SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Center(
+              child: Text(
+            '¿Te cuesta llevar a cabo tareas extensas y enfocarte en ellas?',
+            style: estiloTitulos,
+            textAlign: TextAlign.center,
+          )),
+          Text(
+              'Pomodoro se trata de una técnica para dividir tus tareas en secciones fijas de tiempo, con descansos entre cada una de estas secciones. Esto es especialmente útil para tareas mecánicas, repetitivas, y/o extensas, pues evita un mayor desgaste físico y mental.'),
+          Padding(
+            padding: EdgeInsets.only(top: 12.0, bottom: 5.0),
+            child: Text('¿Qué tal si le echas un vistazo?'),
+          ),
+        ],
+      ),
     ),
-    const Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Center(child: Text('Organiza tus actividades', style: estiloTitulos)),
-        Text('Llevar un control visual de tus pendientes, sea trabajo o proyectos personales, es una gran forma de empezar a visualizar tu progreso, tu rendimiento, ¡E incluso tu motivación para hacer algo!'),
-      ],
+    const SingleChildScrollView(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Center(
+              child: Text('Déjate llevar',
+                  style: estiloTitulos, textAlign: TextAlign.center)),
+          Padding(
+            padding: EdgeInsets.only(top: 12.0, bottom: 5.0),
+            child: Text(
+                'FlowTime se trata de una técnica basada en la teoría del flujo, la cual consiste en esos momentos en los que estás absorbido por una actividad en concreta y pierdes incluso la noción del tiempo, pudiendo desenvolverte en esto indefinidamente. Tiene un enfoque mayormente enfocado a tareas de creativas, de análisis, y resolución de problemas'),
+          ),
+        ],
+      ),
+    ),
+    const SingleChildScrollView(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Center(
+              child: Text('Organiza tus actividades',
+                  style: estiloTitulos, textAlign: TextAlign.center)),
+          Padding(
+            padding: EdgeInsets.only(top: 12.0, bottom: 5.0),
+            child: Text(
+                'Llevar un control visual de tus pendientes, sea trabajo o proyectos personales, es una gran forma de empezar a visualizar tu progreso, tu rendimiento, ¡E incluso tu motivación para hacer algo!'),
+          ),
+        ],
+      ),
+    ),
+    const SingleChildScrollView(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Center(
+              child: Text('Parece que quiere llover...',
+                  style: estiloTitulos, textAlign: TextAlign.center)),
+          Padding(
+            padding: EdgeInsets.only(top: 12.0, bottom: 5.0),
+            child: Text(
+                '¿Necesitas dar en el blanco con alguna idea? Puedes dejar libre cualquiera que se te ocurra y filtrarlas cuanto se te antojen, hasta que des con la(s) correcta(s)'),
+          )
+        ],
+      ),
     )
     // Agrega más Widgets para las otras páginas siguiendo la misma estructura.
   ];
@@ -411,8 +449,8 @@ class InfoDialogContentState extends State<InfoDialogContent> {
   Widget build(BuildContext context) {
     return AlertDialog(
       content: SizedBox(
-        height: 300, // Ajusta según tu contenido
-        width: double.maxFinite,
+        height: MediaQuery.of(context).size.height * 0.5,
+        width: MediaQuery.of(context).size.width * 0.5,
         child: PageView.builder(
           controller: _pageController,
           itemCount: _pagesContent.length, // Número total de páginas
@@ -422,7 +460,6 @@ class InfoDialogContentState extends State<InfoDialogContent> {
             });
           },
           itemBuilder: (context, index) {
-            // Devuelve el widget de contenido correspondiente al índice actual
             return _pagesContent[index];
           },
         ),

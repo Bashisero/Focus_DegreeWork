@@ -5,7 +5,6 @@ import 'package:tesis/detalleRegistro.dart';
 import 'package:tesis/drift_database.dart';
 import 'package:tesis/models.dart';
 import 'dart:async';
-import 'main.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -52,6 +51,8 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
       StreamController<int>.broadcast();
   final TextEditingController _textFieldController = TextEditingController();
   final player = AudioPlayer();
+  int tomates = 0;
+  int rondas = 0;
 
   Future<void> addHistory(RegistroPom reg) async {
     // Crea una instancia de HistorialPom y establece los valores de sus atributos.
@@ -99,12 +100,16 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
                   actions: [
                     TextButton(
                       onPressed: () {
+                        setState(() {
+                          corriendo = false;
+                        });
                         Navigator.pop(context);
                         player.stop();
-                        Navigator.pushNamed(
-                          context,
-                          '/descansoPom',
-                        );
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => DescansoPom(
+                                    tomates: tomates, rondas: rondas)));
                       },
                       child: const Text("Continuar"),
                     ),
@@ -130,7 +135,11 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
                         });
                         Navigator.pop(context);
                         player.stop();
-                        Navigator.pushNamed(context, '/descansoPom');
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => DescansoPom(
+                                    tomates: tomates, rondas: rondas)));
                       },
                       child: const Text("Continuar"),
                     ),
@@ -695,11 +704,16 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
                                       children: [
                                         Row(
                                           mainAxisAlignment:
-                                              MainAxisAlignment.end,
+                                              MainAxisAlignment.spaceEvenly,
                                           children: [
-                                            Text("${registro.pomodorosP}"),
+                                            Text(
+                                              "${registro.pomodorosP}",
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 20),
+                                            ),
                                             Image.asset('assets/tomateIcon.png',
-                                                height: 50, width: 50),
+                                                height: 35, width: 35),
                                           ],
                                         ),
                                       ],
@@ -750,6 +764,7 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
           actions: <Widget>[
             TextButton(
               onPressed: () {
+                Navigator.of(context).pop();
                 Navigator.of(context).pop();
               },
               child: const Text('No'),

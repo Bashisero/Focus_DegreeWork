@@ -530,7 +530,7 @@ class _FlowTimeState extends State<FlowTime> {
                                           MainAxisAlignment.center,
                                       children: [
                                         Text(
-                                            "Trabajaste sin parar por: ${registro.tiempoSesionF}"),
+                                            "Trabajaste por: ${registro.tiempoSesionF}"),
                                       ],
                                     ),
                                   ],
@@ -601,6 +601,7 @@ class _FlowTimeState extends State<FlowTime> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
+                Navigator.of(context).pop();
                 Navigator.of(context).pop();
               },
               child: const Text('No'),

@@ -103,8 +103,10 @@ class _DetallesProyectoState extends State<DetallesProyecto> {
                           textAlign: TextAlign.center,
                         ),
                       ),
-                      Image.asset('assets/wombatNoHechas.png',
-                          height: 320, width: 320),
+                      SingleChildScrollView(
+                        child: Image.asset('assets/wombatNoHechas.png',
+                            height: 320, width: 320),
+                      ),
                     ],
                   ));
                 } else {
@@ -191,6 +193,7 @@ class TareaCard extends StatelessWidget {
                                                   Provider.of<AppDatabase>(
                                                       context,
                                                       listen: false));
+                                          Navigator.pop(context);
                                         });
                                       },
                                       child: const Text("Pomodoro")),

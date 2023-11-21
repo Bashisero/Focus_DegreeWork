@@ -1,13 +1,14 @@
 // ignore_for_file: file_names
 import 'package:flutter/material.dart';
-import 'main.dart';
 import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 
 int tomatesTotales = 0;
 
 class DescansoPom extends StatefulWidget {
-  const DescansoPom({super.key});
+  final int tomates;
+  final int rondas;
+  const DescansoPom({super.key, required this.tomates, required this.rondas});
 
   @override
   State<DescansoPom> createState() => _DescansoPomState();
@@ -20,7 +21,7 @@ class _DescansoPomState extends State<DescansoPom> {
   final player = AudioPlayer();
 
   void obtenerTTotales() {
-    tomatesTotales = rondas * 4 + tomates;
+    tomatesTotales = widget.rondas * 4 + widget.tomates;
   }
 
   void iniciarDescanso(int totalTimeInSeconds) {
@@ -75,7 +76,7 @@ class _DescansoPomState extends State<DescansoPom> {
   void initState() {
     super.initState();
     obtenerTTotales();
-    if (tomates == 4) {
+    if (widget.tomates == 4) {
       iniciarDescanso(10);
     } else {
       iniciarDescanso(5);

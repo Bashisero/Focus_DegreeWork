@@ -81,8 +81,10 @@ class _ProjectsState extends State<Projects> {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  Image.asset('assets/wombatVacio.png',
-                      height: 320, width: 320),
+                  SingleChildScrollView(
+                    child: Image.asset('assets/wombatVacio.png',
+                        height: 320, width: 320),
+                  ),
                 ],
               ),
             );
@@ -137,6 +139,12 @@ class _ProjectsState extends State<Projects> {
                     children: [
                       TextButton(
                         onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text("Cancelar"),
+                      ),
+                      TextButton(
+                        onPressed: () {
                           if (nombreProy == '' || nombreProy.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -154,12 +162,6 @@ class _ProjectsState extends State<Projects> {
                           }
                         },
                         child: const Text("Crear"),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: const Text("Cancelar"),
                       ),
                     ],
                   ),
