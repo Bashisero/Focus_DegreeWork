@@ -70,9 +70,9 @@ class _DescansoPomState extends State<DescansoPom> {
   void initState() {
     super.initState();
     if (widget.tomates == 4) {
-      iniciarDescanso(5);
+      iniciarDescanso(900);
     } else {
-      iniciarDescanso(5);
+      iniciarDescanso(300);
     }
   }
 

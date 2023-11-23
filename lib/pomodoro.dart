@@ -9,7 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:audioplayers/audioplayers.dart';
 
-const List<String> list = <String>["00:05", "15:00", "20:00", "25:00", "30:00"];
+const List<String> list = <String>["10:00", "15:00", "20:00", "25:00", "30:00"];
 String tSesionProv = "";
 String nombreSesionProv = "";
 RegistroPom ultRegistro = RegistroPom.empty();
