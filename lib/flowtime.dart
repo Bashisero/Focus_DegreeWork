@@ -288,318 +288,356 @@ class _FlowTimeState extends State<FlowTime> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      initialIndex: 0,
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text("Flowtime",
-              style: TextStyle(color: Color(0xFFFAF5F1))),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          notificationPredicate: (ScrollNotification notification) {
-            return notification.depth == 1;
-          },
-          scrolledUnderElevation: 4.0,
-          shadowColor: Theme.of(context).shadowColor,
-          bottom: const TabBar(
-            tabs: <Widget>[
-              Tab(
-                icon: Icon(Icons.air, color: Color(0xFFFAF5F1)),
-                child: DefaultTextStyle(
-                    style: TextStyle(color: Color(0xFFFAF5F1)),
-                    child: Text("Iniciar")),
-              ),
-              Tab(
-                icon: Icon(Icons.list_alt_rounded, color: Color(0xFFFAF5F1)),
-                child: DefaultTextStyle(
-                    style: TextStyle(color: Color(0xFFFAF5F1)),
-                    child: Text("Historial")),
-              ),
-            ],
-          ),
-        ),
-        body: TabBarView(children: <Widget>[
-          ListView.builder(
-            itemCount: 1,
-            itemBuilder: (BuildContext context, int index) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(25.0),
-                    child: Image.asset('assets/vientoIcon.png'),
+    return WillPopScope(
+      onWillPop: () async {
+              if (sesionIniciada) {
+          final confirmSalir = await showDialog<bool>(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) {
+              return AlertDialog(
+                title: const Text('¿Interrumpir la sesión?'),
+                content: const Text(
+                    'Perderás el progreso de toda la sesión si lo haces'),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text("Continuar sesión"),
                   ),
-                  SizedBox(
-                    width: 250,
-                    height: 70,
-                    child: Stack(children: [
-                      TextField(
-                        enabled: !blockTF,
-                        onChanged: (value) {
-                          setState(() {
-                            nombreFlowProv = value;
-                          });
-                        },
-                        controller: _textFlowController,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: '¿Qué desea realizar?',
-                        ),
-                      ),
-                    ]),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: const Text("Salir"),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: StreamBuilder<void>(
-                      stream: onUpdate,
-                      builder: (context, snapshot) {
-                        return Text(formaTiempoFl(),
-                            style: const TextStyle(
-                                fontSize: 60, color: Colors.black54));
-                      },
-                    ),
-                  ),
-                  Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        IconButton(
-                          iconSize: 58,
-                          onPressed: () {
-                            if (corriendoFl) {
-                              detenerCronoFl();
-                            } else {
-                              if (_textFlowController.value.text.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content:
-                                        Text('Ingresa un nombre de sesión'),
-                                    backgroundColor: Color(0xFF356D64),
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
-                              } else {
-                                iniciarCronoFl(0);
-                                sesionIniciada = true;
-                                blockTF = true;
-                              }
-                            }
-                          },
-                          icon: corriendoFl
-                              ? const Icon(Icons.pause_circle_rounded)
-                              : const Icon(Icons.play_circle_rounded),
-                        ),
-                      ]),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Column(
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.all(10.0),
-                            decoration: const BoxDecoration(
-                                color: Color.fromARGB(255, 15, 182, 182),
-                                shape: BoxShape.circle),
-                            child: IconButton(
-                              color: Colors.white,
-                              onPressed: corriendoFl
-                                  ? () {
-                                      intInternas++;
-                                      setState(() {});
-                                    }
-                                  : null,
-                              icon: const Icon(Icons.sensor_occupied_rounded),
-                            ),
-                          ),
-                          const Text("Interrupción interna"),
-                          Padding(
-                            padding: const EdgeInsets.all(13.0),
-                            child: SizedBox(
-                              width: 50.0,
-                              height: 50.0,
-                              child: Card(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .inversePrimary,
-                                  child: Center(
-                                      child: Text(
-                                    intInternas.toString(),
-                                    style: const TextStyle(
-                                      fontSize: 23,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ))),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.all(10.0),
-                            decoration: const BoxDecoration(
-                                color: Color.fromARGB(255, 15, 182, 182),
-                                shape: BoxShape.circle),
-                            child: IconButton(
-                              color: Colors.white,
-                              onPressed: corriendoFl
-                                  ? () {
-                                      intExternas++;
-                                      setState(() {});
-                                    }
-                                  : null,
-                              icon: const Icon(Icons.spatial_audio_rounded),
-                            ),
-                          ),
-                          const Text("Interrupción externa"),
-                          Padding(
-                            padding: const EdgeInsets.all(13.0),
-                            child: SizedBox(
-                              width: 50.0,
-                              height: 50.0,
-                              child: Card(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .inversePrimary,
-                                  child: Center(
-                                      child: Text(intExternas.toString(),
-                                          style: const TextStyle(
-                                            fontSize: 23,
-                                            fontWeight: FontWeight.bold,
-                                          )))),
-                            ),
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                  const Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: []),
                 ],
               );
             },
-          ),
-          FutureBuilder<List<HistorialFlowData>>(
-            future: Provider.of<AppDatabase>(context).getRegistrosFList(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const CircularProgressIndicator();
-              } else if (snapshot.hasError) {
-                return Text('Error: ${snapshot.error}');
-              } else {
-                final registros = snapshot.data;
-                if (registros == null || registros.isEmpty) {
-                  return const Center(
-                      child: Text(
-                    'Aún no hay registros',
-                    style: TextStyle(
-                      fontSize: 24,
-                      color: Colors.black54,
-                    ),
-                  ));
-                } else {
-                  return ListView.builder(
-                    reverse: true,
-                    itemCount: registros.length,
-                    itemBuilder: (context, index) {
-                      final registro = registros[index];
-                      return InkWell(
-                          onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        DetalleFlow(registro: registro)));
+          );
+          if (confirmSalir == true) {
+            setState(() {
+              timerFl?.cancel();
+              resetState();
+              }
+    );
+            return true;
+          }
+          return false;
+        }
+        return true;
+      },
+      child: DefaultTabController(
+          initialIndex: 0,
+          length: 2,
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text("Flowtime",
+                  style: TextStyle(color: Color(0xFFFAF5F1))),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              notificationPredicate: (ScrollNotification notification) {
+                return notification.depth == 1;
+              },
+              scrolledUnderElevation: 4.0,
+              shadowColor: Theme.of(context).shadowColor,
+              bottom: const TabBar(
+                tabs: <Widget>[
+                  Tab(
+                    icon: Icon(Icons.air, color: Color(0xFFFAF5F1)),
+                    child: DefaultTextStyle(
+                        style: TextStyle(color: Color(0xFFFAF5F1)),
+                        child: Text("Iniciar")),
+                  ),
+                  Tab(
+                    icon: Icon(Icons.list_alt_rounded, color: Color(0xFFFAF5F1)),
+                    child: DefaultTextStyle(
+                        style: TextStyle(color: Color(0xFFFAF5F1)),
+                        child: Text("Historial")),
+                  ),
+                ],
+              ),
+            ),
+            body: TabBarView(children: <Widget>[
+              ListView.builder(
+                itemCount: 1,
+                itemBuilder: (BuildContext context, int index) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(25.0),
+                        child: Image.asset('assets/vientoIcon.png'),
+                      ),
+                      SizedBox(
+                        width: 250,
+                        height: 70,
+                        child: Stack(children: [
+                          TextField(
+                            enabled: !blockTF,
+                            onChanged: (value) {
+                              setState(() {
+                                nombreFlowProv = value;
+                              });
+                            },
+                            controller: _textFlowController,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: '¿Qué desea realizar?',
+                            ),
+                          ),
+                        ]),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: StreamBuilder<void>(
+                          stream: onUpdate,
+                          builder: (context, snapshot) {
+                            return Text(formaTiempoFl(),
+                                style: const TextStyle(
+                                    fontSize: 60, color: Colors.black54));
                           },
-                          child: Card(
-                            child: Row(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color:
-                                        const Color.fromARGB(255, 15, 182, 182),
-                                    borderRadius: BorderRadius.circular(12.5),
-                                  ),
-                                  width: 100,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(5.0),
-                                    child: Text(
-                                      registro.nombreSesionF,
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
+                        ),
+                      ),
+                      Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            IconButton(
+                              iconSize: 58,
+                              onPressed: () {
+                                if (corriendoFl) {
+                                  detenerCronoFl();
+                                } else {
+                                  if (_textFlowController.value.text.isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content:
+                                            Text('Ingresa un nombre de sesión'),
+                                        backgroundColor: Color(0xFF356D64),
+                                        duration: Duration(seconds: 2),
+                                      ),
+                                    );
+                                  } else {
+                                    iniciarCronoFl(0);
+                                    sesionIniciada = true;
+                                    blockTF = true;
+                                  }
+                                }
+                              },
+                              icon: corriendoFl
+                                  ? const Icon(Icons.pause_circle_rounded)
+                                  : const Icon(Icons.play_circle_rounded),
+                            ),
+                          ]),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Column(
+                            children: [
+                              Container(
+                                margin: const EdgeInsets.all(10.0),
+                                decoration: const BoxDecoration(
+                                    color: Color.fromARGB(255, 15, 182, 182),
+                                    shape: BoxShape.circle),
+                                child: IconButton(
+                                  color: Colors.white,
+                                  onPressed: corriendoFl
+                                      ? () {
+                                          intInternas++;
+                                          setState(() {});
+                                        }
+                                      : null,
+                                  icon: const Icon(Icons.sensor_occupied_rounded),
                                 ),
-                                Column(
+                              ),
+                              const Text("Interrupción interna"),
+                              Padding(
+                                padding: const EdgeInsets.all(13.0),
+                                child: SizedBox(
+                                  width: 50.0,
+                                  height: 50.0,
+                                  child: Card(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .inversePrimary,
+                                      child: Center(
+                                          child: Text(
+                                        intInternas.toString(),
+                                        style: const TextStyle(
+                                          fontSize: 23,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ))),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Column(
+                            children: [
+                              Container(
+                                margin: const EdgeInsets.all(10.0),
+                                decoration: const BoxDecoration(
+                                    color: Color.fromARGB(255, 15, 182, 182),
+                                    shape: BoxShape.circle),
+                                child: IconButton(
+                                  color: Colors.white,
+                                  onPressed: corriendoFl
+                                      ? () {
+                                          intExternas++;
+                                          setState(() {});
+                                        }
+                                      : null,
+                                  icon: const Icon(Icons.spatial_audio_rounded),
+                                ),
+                              ),
+                              const Text("Interrupción externa"),
+                              Padding(
+                                padding: const EdgeInsets.all(13.0),
+                                child: SizedBox(
+                                  width: 50.0,
+                                  height: 50.0,
+                                  child: Card(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .inversePrimary,
+                                      child: Center(
+                                          child: Text(intExternas.toString(),
+                                              style: const TextStyle(
+                                                fontSize: 23,
+                                                fontWeight: FontWeight.bold,
+                                              )))),
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                      const Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: []),
+                    ],
+                  );
+                },
+              ),
+              FutureBuilder<List<HistorialFlowData>>(
+                future: Provider.of<AppDatabase>(context).getRegistrosFList(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  } else {
+                    final registros = snapshot.data;
+                    if (registros == null || registros.isEmpty) {
+                      return const Center(
+                          child: Text(
+                        'Aún no hay registros',
+                        style: TextStyle(
+                          fontSize: 24,
+                          color: Colors.black54,
+                        ),
+                      ));
+                    } else {
+                      return ListView.builder(
+                        reverse: true,
+                        itemCount: registros.length,
+                        itemBuilder: (context, index) {
+                          final registro = registros[index];
+                          return InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            DetalleFlow(registro: registro)));
+                              },
+                              child: Card(
+                                child: Row(
                                   children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                              left: 25.0,
-                                              right: 8.0,
-                                              bottom: 8.0),
-                                          child: Text(DateFormat('dd/MM/yyyy')
-                                              .format(registro.fechaSesionF)),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color:
+                                            const Color.fromARGB(255, 15, 182, 182),
+                                        borderRadius: BorderRadius.circular(12.5),
+                                      ),
+                                      width: 100,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(5.0),
+                                        child: Text(
+                                          registro.nombreSesionF,
+                                          textAlign: TextAlign.center,
                                         ),
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                              left: 40.0,
-                                              right: 8.0,
-                                              bottom: 8.0),
-                                          child: Text(DateFormat('HH:mm')
-                                              .format(registro.horaInicioF)),
-                                        ),
-                                      ],
+                                      ),
                                     ),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                            "Trabajaste por: ${registro.tiempoSesionF}"),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                Expanded(
-                                  child: Align(
-                                    alignment: Alignment.centerRight,
-                                    child: Column(
+                                    Column(
                                       children: [
                                         Row(
                                           mainAxisAlignment:
-                                              MainAxisAlignment.end,
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  left: 25.0,
+                                                  right: 8.0,
+                                                  bottom: 8.0),
+                                              child: Text(DateFormat('dd/MM/yyyy')
+                                                  .format(registro.fechaSesionF)),
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  left: 40.0,
+                                                  right: 8.0,
+                                                  bottom: 8.0),
+                                              child: Text(DateFormat('HH:mm')
+                                                  .format(registro.horaInicioF)),
+                                            ),
+                                          ],
+                                        ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           children: [
                                             Text(
-                                              "${registro.internas + registro.externas}",
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20),
-                                            ),
-                                            const Icon(
-                                              Icons.warning_amber_rounded,
-                                              color: Colors.red,
-                                            )
+                                                "Trabajaste por: ${registro.tiempoSesionF}"),
                                           ],
                                         ),
                                       ],
                                     ),
-                                  ),
+                                    Expanded(
+                                      child: Align(
+                                        alignment: Alignment.centerRight,
+                                        child: Column(
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.end,
+                                              children: [
+                                                Text(
+                                                  "${registro.internas + registro.externas}",
+                                                  style: const TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 20),
+                                                ),
+                                                const Icon(
+                                                  Icons.warning_amber_rounded,
+                                                  color: Colors.red,
+                                                )
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ));
-                    },
-                  );
-                }
-              }
-            },
-          )
-        ]),
-      ),
-    );
+                              ));
+                        },
+                      );
+                    }
+                  }
+                },
+              )
+            ]),
+          ),
+        ),
+    )
+    ;
   }
 
   Future<void> pruebaDirectaActualizacionTarea(int idTarea) async {

@@ -202,60 +202,71 @@ class GeneratorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<IdeasState>();
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Expanded(
-            flex: 3,
-            child: HistoryListView(),
+    return Stack(children: [
+      // Fondo
+      Positioned.fill(
+        child: Center(
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: Image.asset(
+              'assets/wombatL.png', // Reemplaza con la ruta de tu imagen
+              fit: BoxFit.cover,
+              opacity: const AlwaysStoppedAnimation(
+                  0.2), // Esto asegura que la imagen cubra todo el fondo
+            ),
           ),
-          const SizedBox(height: 10),
-          BigCard(controller: textController),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  appState.addUserInputToHistory(textController.text, false);
-                  appState.addDiscarded(textController.text);
-                  textController.clear();
-                },
-                child: const Text('Siguiente...'),
-              ),
-              const SizedBox(width: 10),
-              ElevatedButton(
-                onPressed: () {
-                  appState.addUserInputToHistory(textController.text, true);
-                  textController.clear();
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize
-                      .min, // Para que el Row no ocupe todo el ancho disponible
-                  children: <Widget>[
-                    Icon(
-                      appState.favorites.contains(textController.text)
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                    ),
-                    const SizedBox(
-                        width: 4), // Espacio entre el ícono y el texto
-                    const Text("Me gusta"),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const Spacer(flex: 1),
-          Positioned(
-              right: MediaQuery.of(context).size.width * 0.41,
-              bottom: MediaQuery.of(context).size.height * 0.075,
-              child: Image.asset('assets/wombatL.png', height: 85, width: 85))
-        ],
+        ),
       ),
-    );
+      Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Expanded(
+              flex: 3,
+              child: HistoryListView(),
+            ),
+            const SizedBox(height: 10),
+            BigCard(controller: textController),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    appState.addUserInputToHistory(textController.text, false);
+                    appState.addDiscarded(textController.text);
+                    textController.clear();
+                  },
+                  child: const Text('Siguiente...'),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    appState.addUserInputToHistory(textController.text, true);
+                    textController.clear();
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize
+                        .min, // Para que el Row no ocupe todo el ancho disponible
+                    children: <Widget>[
+                      Icon(
+                        appState.favorites.contains(textController.text)
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                      ),
+                      const SizedBox(
+                          width: 4), // Espacio entre el ícono y el texto
+                      const Text("Me gusta"),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const Spacer(flex: 2),
+          ],
+        ),
+      )
+    ]);
   }
 }
 
@@ -296,48 +307,59 @@ class FavoritesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<IdeasState>();
-
-    return Column(
-      children: [
-        Expanded(
-          child: ListView.separated(
-            itemCount: appState.discarded.length,
-            itemBuilder: (context, index) {
-              final item = appState.discarded[index];
-              return ListTile(
-                title: Text(item,
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.favorite_border),
-                      onPressed: () {
-                        appState.removeDiscarded(item);
-                        appState.toggleFavorite(item);
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () {
-                        appState.removeDiscarded(item);
-                      },
-                    ),
-                  ],
-                ),
-              );
-            },
-            separatorBuilder: (context, index) {
-              return const Divider();
-            },
+    return Stack(children: [
+      // Fondo
+      Positioned.fill(
+        child: Center(
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: Image.asset(
+              'assets/wombatDescartada.png', // Reemplaza con la ruta de tu imagen
+              fit: BoxFit.cover,
+              opacity: const AlwaysStoppedAnimation(
+                  0.2), // Esto asegura que la imagen cubra todo el fondo
+            ),
           ),
         ),
-        Positioned(
-            right: MediaQuery.of(context).size.width * 0.41,
-            bottom: MediaQuery.of(context).size.height * 0.075,
-            child: Image.asset('assets/wombatDescartada.png', height: 85, width: 85))
-      ],
-    );
+      ),
+      Column(
+        children: [
+          Expanded(
+            child: ListView.separated(
+              itemCount: appState.discarded.length,
+              itemBuilder: (context, index) {
+                final item = appState.discarded[index];
+                return ListTile(
+                  title: Text(item,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.favorite_border),
+                        onPressed: () {
+                          appState.removeDiscarded(item);
+                          appState.toggleFavorite(item);
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () {
+                          appState.removeDiscarded(item);
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
+              separatorBuilder: (context, index) {
+                return const Divider();
+              },
+            ),
+          ),
+        ],
+      )
+    ]);
   }
 }
 
@@ -348,34 +370,50 @@ class Descartadas extends StatelessWidget {
   Widget build(BuildContext context) {
     var appState = context.watch<IdeasState>();
 
-    return Column(
+    return Stack(
       children: [
-        Expanded(
-          child: ListView.separated(
-            itemCount: appState.favorites.length,
-            itemBuilder: (context, index) {
-              final item = appState.favorites[index];
-              return ListTile(
-                title: Text(item,
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () {
-                    appState.removeFavorite(item);
-                    appState.addDiscarded(item);
-                  },
-                ),
-              );
-            },
-            separatorBuilder: (context, index) {
-              return const Divider();
-            },
+        // Fondo
+        Positioned.fill(
+          child: Center(
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: Image.asset(
+                'assets/wombatIdea.png', // Reemplaza con la ruta de tu imagen
+                fit: BoxFit.cover,
+                opacity: const AlwaysStoppedAnimation(
+                    0.2), // Esto asegura que la imagen cubra todo el fondo
+              ),
+            ),
           ),
         ),
-        Positioned(
-            right: MediaQuery.of(context).size.width * 0.41,
-            bottom: MediaQuery.of(context).size.height * 0.075,
-            child: Image.asset('assets/wombatIdea.png', height: 85, width: 85))
+
+        // Contenido
+        Column(
+          children: [
+            Expanded(
+              child: ListView.separated(
+                itemCount: appState.favorites.length,
+                itemBuilder: (context, index) {
+                  final item = appState.favorites[index];
+                  return ListTile(
+                    title: Text(item,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () {
+                        appState.removeFavorite(item);
+                        appState.addDiscarded(item);
+                      },
+                    ),
+                  );
+                },
+                separatorBuilder: (context, index) {
+                  return const Divider();
+                },
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }

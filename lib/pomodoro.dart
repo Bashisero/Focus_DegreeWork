@@ -39,7 +39,7 @@ class Pomodoro extends StatefulWidget {
 }
 
 class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
-  String selectedTime = "00:05";
+  String selectedTime = "10:00";
   bool bloquearDropdown = false;
   bool cronoVisible = false;
   bool bloquearTextField = false;
@@ -53,9 +53,9 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
   final player = AudioPlayer();
   int tomates = 0;
   int rondas = 0;
+  bool sesionYaIniciada = false; // Nueva variable para llevar registro
 
   Future<void> addHistory(RegistroPom reg) async {
-    // Crea una instancia de HistorialPom y establece los valores de sus atributos.
     final nuevoRegistro = HistorialPomCompanion.insert(
       nombreSesionP: reg.nombreSesionP,
       fechaSesionP: reg.fechaP,
@@ -66,8 +66,6 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
       tiempoSesionP: reg.tiempoSesionP,
       anotacionesP: reg.anotacionesP,
     );
-
-    // Inserta la instancia en la base de datos Drift.
     await Provider.of<AppDatabase>(context, listen: false)
         .into(Provider.of<AppDatabase>(context, listen: false).historialPom)
         .insert(nuevoRegistro);
@@ -75,18 +73,24 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
 
   void iniciarCrono(int totalTimeInSeconds) {
     if (!corriendo) {
+      sesionIniciada = true;
       corriendo = true;
       segundos = totalTimeInSeconds;
+      if (!sesionYaIniciada) {
+        hoy = DateTime.now(); // Solo se inicializa la primera vez
+        horaInicioProv = DateTime(0, 0, 0, hoy.hour, hoy.minute, hoy.second);
+        ultRegistro.inicSesionP = horaInicioProv;
+        sesionYaIniciada = true; // Marcamos que la sesión ya ha iniciado
+      }
       timer = Timer.periodic(const Duration(seconds: 1), (timer) {
         segundos--;
         if (segundos == 0) {
-          detenerCrono(); // Detener el temporizador
+          detenerCrono();
           player.setReleaseMode(ReleaseMode.loop);
           player.play(AssetSource('piano.mp3'));
           tomates++;
           _tomatesStreamController.add(tomates);
           if (tomates == 4) {
-            // Reiniciar el contador de tomates
             rondas++;
             showDialog(
               context: context,
@@ -222,11 +226,10 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
     });
   }
 
-  Color obtenerColorDropdown(bool ver, BuildContext context){
-    if(!ver) {
+  Color obtenerColorDropdown(bool ver, BuildContext context) {
+    if (!ver) {
       return Colors.black;
-    }
-    else{
+    } else {
       return Colors.grey;
     }
   }
@@ -258,520 +261,564 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.paused) {
-      // La app ha pasado a segundo plano
+    // Asegurarse de que el cronómetro se reinicie solo si la sesión estaba en curso
+    if (state == AppLifecycleState.paused && corriendo) {
       detenerCrono();
-    } else if (state == AppLifecycleState.resumed && corriendo) {
-      // La app ha vuelto a primer plano
-      if (sesionIniciada) {
-        iniciarCrono(segundos); // Reanuda el cronómetro con el tiempo restante
-      }
+    } else if (state == AppLifecycleState.resumed && sesionIniciada && !corriendo && segundos > 0) {
+      iniciarCrono(segundos);
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      initialIndex: 0,
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text("Pomodoro",
-              style: TextStyle(color: Color(0xFFFAF5F1))),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          notificationPredicate: (ScrollNotification notification) {
-            return notification.depth == 1;
-          },
-          scrolledUnderElevation: 4.0,
-          shadowColor: Theme.of(context).shadowColor,
-          bottom: const TabBar(
-            tabs: <Widget>[
-              Tab(
-                  icon: Icon(Icons.fitness_center, color: Color(0xFFFAF5F1)),
-                  child: DefaultTextStyle(
-                    style: TextStyle(color: Color(0xFFFAF5F1)),
-                    child: Text("Iniciar"),
-                  )),
-              Tab(
-                  icon: Icon(Icons.list_alt_rounded, color: Color(0xFFFAF5F1)),
-                  child: DefaultTextStyle(
-                    style: TextStyle(color: Color(0xFFFAF5F1)),
-                    child: Text("Historial"),
-                  )),
-            ],
-          ),
-        ),
-        body: TabBarView(children: <Widget>[
-          ListView.builder(
-            itemCount: 1,
-            itemBuilder: (BuildContext context, int index) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(25.0),
-                    child: Image.asset('assets/tomateCopia.png'),
+    return WillPopScope(
+      onWillPop: () async {
+        if (sesionIniciada) {
+          final confirmSalir = await showDialog<bool>(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) {
+              return AlertDialog(
+                title: const Text('¿Interrumpir la sesión?'),
+                content: const Text(
+                    'Perderás el progreso de toda la sesión si lo haces'),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text("Continuar sesión"),
                   ),
-                  SizedBox(
-                    width: 250,
-                    height: 70,
-                    child: Stack(
-                      children: [
-                        TextField(
-                          enabled: !bloquearTextField,
-                          onChanged: (value) {
-                            setState(() {
-                              nombreSesionProv = value;
-                            });
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: const Text("Salir"),
+                  ),
+                ],
+              );
+            },
+          );
+          if (confirmSalir == true) {
+            setState(() {
+              detenerCrono();
+              cronoVisible = false;
+              bloquearDropdown = false;
+              if (widget.nombreSesion == null) {
+                bloquearTextField = false;
+              }
+            });
+            return true;
+          }
+          return false;
+        }
+        return true;
+      },
+      child: DefaultTabController(
+        initialIndex: 0,
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text("Pomodoro",
+                style: TextStyle(color: Color(0xFFFAF5F1))),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            notificationPredicate: (ScrollNotification notification) {
+              return notification.depth == 1;
+            },
+            scrolledUnderElevation: 4.0,
+            shadowColor: Theme.of(context).shadowColor,
+            bottom: const TabBar(
+              tabs: <Widget>[
+                Tab(
+                    icon: Icon(Icons.fitness_center, color: Color(0xFFFAF5F1)),
+                    child: DefaultTextStyle(
+                      style: TextStyle(color: Color(0xFFFAF5F1)),
+                      child: Text("Iniciar"),
+                    )),
+                Tab(
+                    icon:
+                        Icon(Icons.list_alt_rounded, color: Color(0xFFFAF5F1)),
+                    child: DefaultTextStyle(
+                      style: TextStyle(color: Color(0xFFFAF5F1)),
+                      child: Text("Historial"),
+                    )),
+              ],
+            ),
+          ),
+          body: TabBarView(children: <Widget>[
+            ListView.builder(
+              itemCount: 1,
+              itemBuilder: (BuildContext context, int index) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(25.0),
+                      child: Image.asset('assets/tomateCopia.png'),
+                    ),
+                    SizedBox(
+                      width: 250,
+                      height: 70,
+                      child: Stack(
+                        children: [
+                          TextField(
+                            enabled: !bloquearTextField,
+                            onChanged: (value) {
+                              setState(() {
+                                nombreSesionProv = value;
+                              });
+                            },
+                            controller: _textFieldController,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: '¿Qué desea realizar?',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Visibility(
+                        visible: cronoVisible,
+                        child: StreamBuilder<void>(
+                          stream: onUpdate,
+                          builder: (context, snapshot) {
+                            return Text(formaTiempo(),
+                                style: const TextStyle(
+                                    fontSize: 60, color: Colors.black54));
                           },
-                          controller: _textFieldController,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: '¿Qué desea realizar?',
+                        ),
+                      ),
+                    ),
+                    Text("Rondas: $rondas",
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        GestureDetector(
+                          onTap: bloquearDropdown
+                              ? null
+                              : () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: const Text(
+                                            'Elige tu tiempo de cada Pomodoro',
+                                            textAlign: TextAlign.center),
+                                        content: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children:
+                                              list.asMap().entries.map((entry) {
+                                            int idx = entry.key;
+                                            String value = entry.value;
+
+                                            return Column(
+                                              children: <Widget>[
+                                                ListTile(
+                                                  title: Text(value),
+                                                  onTap: () {
+                                                    setState(() {
+                                                      selectedTime = value;
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    });
+                                                  },
+                                                ),
+                                                if (idx != list.length - 1)
+                                                  const Divider(),
+                                              ],
+                                            );
+                                          }).toList(),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                          child: Row(
+                            children: [
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              Text(
+                                selectedTime,
+                                style: TextStyle(
+                                  color: obtenerColorDropdown(
+                                      bloquearDropdown, context),
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.w300,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              const Icon(Icons.arrow_drop_down),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Visibility(
-                      visible: cronoVisible,
-                      child: StreamBuilder<void>(
-                        stream: onUpdate,
-                        builder: (context, snapshot) {
-                          return Text(formaTiempo(),
-                              style: const TextStyle(
-                                  fontSize: 60, color: Colors.black54));
-                        },
-                      ),
-                    ),
-                  ),
-                  Text("Rondas: $rondas",
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      GestureDetector(
-                        onTap: bloquearDropdown
-                            ? null
-                            : () {
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text(
-                                          'Elige tu tiempo de cada Pomodoro',
-                                          textAlign: TextAlign.center),
-                                      content: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children:
-                                            list.asMap().entries.map((entry) {
-                                          int idx = entry.key;
-                                          String value = entry.value;
-
-                                          return Column(
-                                            children: <Widget>[
-                                              ListTile(
-                                                title: Text(value),
-                                                onTap: () {
-                                                  setState(() {
-                                                    selectedTime = value;
-                                                    Navigator.of(context).pop();
-                                                  });
-                                                },
-                                              ),
-                                              // Agregar un Divider si no es el último elemento
-                                              if (idx != list.length - 1)
-                                                const Divider(),
-                                            ],
-                                          );
-                                        }).toList(),
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
-                        child: Row(
-                          children: [
-                            const SizedBox(
-                              width: 10,
-                            ),
-                            Text(
-                              selectedTime,
-                              style: TextStyle(
-                                color: obtenerColorDropdown(bloquearDropdown, context),
-                                fontSize: 30,
-                                fontWeight: FontWeight.w300,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            const Icon(Icons.arrow_drop_down),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton(
-                          onPressed: corriendo == false
-                              ? () {
-                                  if (nombreSesionProv.isNotEmpty) {
-                                    final timeParts = selectedTime.split(':');
-                                    final minutes = int.parse(timeParts[0]);
-                                    final seconds = int.parse(timeParts[1]);
-                                    final totalTimeInSeconds =
-                                        (minutes * 60) + seconds;
-                                    setState(() {
-                                      iniciarCrono(totalTimeInSeconds);
-                                      cronoVisible = true;
-                                      bloquearDropdown = true;
-                                    });
-                                    if (sesionIniciada == false) {
-                                      hoy = DateTime.now();
-                                      horaInicioProv = DateTime(0, 0, 0,
-                                          hoy.hour, hoy.minute, hoy.second);
-                                      ultRegistro.inicSesionP = horaInicioProv;
-                                    }
-                                    bloquearNombre();
-                                    sesionIniciada = true;
-                                  } else {
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(const SnackBar(
-                                      content:
-                                          Text('Ingresa un nombre de sesión'),
-                                      backgroundColor: Color(0xFF356D64),
-                                      duration: Duration(seconds: 2),
-                                    ));
-                                  }
-                                }
-                              : null,
-                          child: const Text("Iniciar"),
-                        ),
-                        ElevatedButton(
-                            onPressed: sesionIniciada && corriendo
+                    Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ElevatedButton(
+                            onPressed: corriendo == false
                                 ? () {
-                                    showDialog(
-                                        context: context,
-                                        barrierDismissible: false,
-                                        builder: (context) {
-                                          return AlertDialog(
-                                            title: const Text(
-                                                '¿Terminar la sesión?'),
-                                            content: const Text(
-                                                'Perderás el progreso de este pomodoro si lo haces'),
-                                            actions: <Widget>[
-                                              TextButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(context);
-                                                  },
-                                                  child: const Text(
-                                                      "Continuar sesión")),
-                                              TextButton(
-                                                onPressed: () {
-                                                  setState(() {
-                                                    detenerCrono();
-                                                  });
-                                                  Navigator.pop(
-                                                      context, 'Detener');
-                                                  cronoVisible = !cronoVisible;
-                                                  bloquearDropdown = false;
-                                                  if (widget.nombreSesion ==
-                                                      null) {
-                                                    bloquearTextField = false;
-                                                  }
-                                                },
-                                                child: const Text("Detener"),
-                                              )
-                                            ],
-                                          );
-                                        });
+                                    if (nombreSesionProv.isNotEmpty) {
+                                      final timeParts = selectedTime.split(':');
+                                      final minutes = int.parse(timeParts[0]);
+                                      final seconds = int.parse(timeParts[1]);
+                                      final totalTimeInSeconds =
+                                          (minutes * 60) + seconds;
+                                      setState(() {
+                                        iniciarCrono(totalTimeInSeconds);
+                                        cronoVisible = true;
+                                        bloquearDropdown = true;
+                                      });
+                                      bloquearNombre();
+                                      sesionIniciada = true;
+                                    } else {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(
+                                        content:
+                                            Text('Ingresa un nombre de sesión'),
+                                        backgroundColor: Color(0xFF356D64),
+                                        duration: Duration(seconds: 2),
+                                      ));
+                                    }
                                   }
                                 : null,
-                            child: const Text("Detener")),
-                      ]),
-                  Center(
-                    child: ElevatedButton(
-                        onPressed: sesionIniciada &&
-                                corriendo == false &&
-                                (tomates > 0 || rondas > 0)
-                            ? () async {
-                                showDialog(
-                                    context: context,
-                                    barrierDismissible: false,
-                                    builder: (context) {
-                                      return AlertDialog(
-                                          content: const Text(
-                                              '¿Tiene alguna anotación acerca de esta sesión?'),
-                                          title: const Text('Finalizar Sesión'),
-                                          actions: [
-                                            Padding(
-                                              padding: const EdgeInsets.all(13),
-                                              child: TextField(
-                                                  onChanged: (anotacion) {
-                                                    setState(() {
-                                                      ultRegistro.anotacionesP =
-                                                          anotacion;
-                                                    });
-                                                  },
-                                                  decoration:
-                                                      const InputDecoration(
-                                                    border:
-                                                        OutlineInputBorder(),
-                                                    labelText: 'Anotaciones',
-                                                  )),
-                                            ),
-                                            Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceEvenly,
-                                                children: [
-                                                  TextButton(
+                            child: const Text("Iniciar"),
+                          ),
+                          ElevatedButton(
+                              onPressed: sesionIniciada && corriendo
+                                  ? () {
+                                      showDialog(
+                                          context: context,
+                                          barrierDismissible: false,
+                                          builder: (context) {
+                                            return AlertDialog(
+                                              title: const Text(
+                                                  '¿Terminar la sesión?'),
+                                              content: const Text(
+                                                  'Perderás el progreso de este pomodoro si lo haces'),
+                                              actions: <Widget>[
+                                                TextButton(
                                                     onPressed: () {
                                                       Navigator.pop(context);
                                                     },
-                                                    child:
-                                                        const Text("Cancelar"),
-                                                  ),
-                                                  TextButton(
-                                                      onPressed: () async {
-                                                        setState(() {
-                                                          detenerCrono();
-                                                          ultRegistro
-                                                                  .pomodorosP =
-                                                              (rondas * 4) +
-                                                                  tomates;
-                                                          ultRegistro
-                                                                  .numRondasP =
-                                                              rondas;
-                                                        });
-                                                        bloquearDropdown =
-                                                            false;
-                                                        bloquearTextField =
-                                                            false;
-                                                        cronoVisible =
-                                                            !cronoVisible;
-                                                        tSesionProv =
-                                                            selectedTime;
-                                                        //////
+                                                    child: const Text(
+                                                        "Continuar sesión")),
+                                                TextButton(
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      detenerCrono();
+                                                    });
+                                                    Navigator.pop(
+                                                        context, 'Detener');
+                                                    cronoVisible =
+                                                        !cronoVisible;
+                                                    bloquearDropdown = false;
+                                                    if (widget.nombreSesion ==
+                                                        null) {
+                                                      bloquearTextField = false;
+                                                    }
+                                                  },
+                                                  child: const Text("Detener"),
+                                                )
+                                              ],
+                                            );
+                                          });
+                                    }
+                                  : null,
+                              child: const Text("Detener")),
+                        ]),
+                    Center(
+                      child: ElevatedButton(
+                          onPressed: sesionIniciada &&
+                                  corriendo == false &&
+                                  (tomates > 0 || rondas > 0)
+                              ? () async {
+                                  showDialog(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (context) {
+                                        return AlertDialog(
+                                            content: const Text(
+                                                '¿Tiene alguna anotación acerca de esta sesión?'),
+                                            title:
+                                                const Text('Finalizar Sesión'),
+                                            actions: [
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.all(13),
+                                                child: TextField(
+                                                    onChanged: (anotacion) {
+                                                      setState(() {
                                                         ultRegistro
-                                                                .nombreSesionP =
-                                                            nombreSesionProv;
-                                                        ultRegistro
-                                                                .tiempoSesionP =
-                                                            tSesionProv;
-                                                        fechaSesionProv =
-                                                            DateTime(
-                                                                hoy.year,
-                                                                hoy.month,
-                                                                hoy.day);
-                                                        ultRegistro.fechaP =
-                                                            fechaSesionProv;
-                                                        DateTime hoy2 =
-                                                            DateTime.now();
-                                                        horaFinProv = DateTime(
-                                                            0,
-                                                            0,
-                                                            0,
-                                                            hoy2.hour,
-                                                            hoy2.minute,
-                                                            hoy2.second);
-                                                        ultRegistro.finSesionP =
-                                                            horaFinProv;
-                                                        rondas = 0;
-                                                        if (ultRegistro
-                                                            .anotacionesP
-                                                            .isEmpty) {
-                                                          ultRegistro
-                                                                  .anotacionesP =
-                                                              "Sin comentarios";
-                                                        }
-                                                        addHistory(ultRegistro);
-                                                        resetState();
-                                                        Navigator.of(context)
-                                                            .pop();
-                                                        if (widget
-                                                                .nombreSesion !=
-                                                            null) {
-                                                          _mostrarDialogoTareaCompletada(
-                                                              context);
-                                                        }
+                                                                .anotacionesP =
+                                                            anotacion;
+                                                      });
+                                                    },
+                                                    decoration:
+                                                        const InputDecoration(
+                                                      border:
+                                                          OutlineInputBorder(),
+                                                      labelText: 'Anotaciones',
+                                                    )),
+                                              ),
+                                              Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceEvenly,
+                                                  children: [
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.pop(context);
                                                       },
                                                       child: const Text(
-                                                          "Finalizar"))
-                                                ]),
-                                          ]);
-                                    });
-                              }
-                            : null,
-                        child: const Text("Finalizar Sesión")),
-                  ),
-                  StreamBuilder<Object>(
-                      stream: _tomatesStreamController.stream,
-                      initialData: tomates,
-                      builder: (context, snapshot) {
-                        return Card(
-                            margin: const EdgeInsets.all(10.0),
-                            shape: RoundedRectangleBorder(
-                                side: BorderSide(
-                                    color:
-                                        Theme.of(context).colorScheme.outline),
-                                borderRadius: const BorderRadius.all(
-                                    Radius.circular(15))),
-                            child: SizedBox(
-                              height: 100.0,
-                              width: 260.0,
-                              child: StreamBuilder<Object>(
-                                  stream: _tomatesStreamController.stream,
-                                  initialData: tomates,
-                                  builder: (context, snapshot) {
-                                    return ListView.builder(
-                                        itemCount: 4,
-                                        scrollDirection: Axis.horizontal,
-                                        itemBuilder: (context, index) {
-                                          bool activado = index < tomates;
-                                          return Padding(
-                                              padding:
-                                                  const EdgeInsets.all(8.0),
-                                              child: Image.asset(
-                                                activado
-                                                    ? 'assets/tomateIcon.png'
-                                                    : 'assets/dark_tomateIcon.png',
-                                                width: 50,
-                                                height: 50,
-                                              ));
-                                        });
-                                  }),
-                            ));
-                      }),
-                ],
-              );
-            },
-          ),
-          FutureBuilder<List<HistorialPomData>>(
-            future: Provider.of<AppDatabase>(context).getRegistrosPList(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const CircularProgressIndicator(); // Muestra un indicador de carga mientras se obtienen los datos
-              } else if (snapshot.hasError) {
-                return Text('Error: ${snapshot.error}');
-              } else {
-                final registros = snapshot.data;
-                if (registros == null || registros.isEmpty) {
-                  return const Center(
-                      child: Text(
-                    'Aún no hay registros',
-                    style: TextStyle(
-                      fontSize: 24,
-                      color: Colors.black54,
+                                                          "Cancelar"),
+                                                    ),
+                                                    TextButton(
+                                                        onPressed: () async {
+                                                          setState(() {
+                                                            detenerCrono();
+                                                            ultRegistro
+                                                                    .pomodorosP =
+                                                                (rondas * 4) +
+                                                                    tomates;
+                                                            ultRegistro
+                                                                    .numRondasP =
+                                                                rondas;
+                                                          });
+                                                          bloquearDropdown =
+                                                              false;
+                                                          bloquearTextField =
+                                                              false;
+                                                          cronoVisible =
+                                                              !cronoVisible;
+                                                          tSesionProv =
+                                                              selectedTime;
+                                                          //////
+                                                          ultRegistro
+                                                                  .nombreSesionP =
+                                                              nombreSesionProv;
+                                                          ultRegistro
+                                                                  .tiempoSesionP =
+                                                              tSesionProv;
+                                                          fechaSesionProv =
+                                                              DateTime(
+                                                                  hoy.year,
+                                                                  hoy.month,
+                                                                  hoy.day);
+                                                          ultRegistro.fechaP =
+                                                              fechaSesionProv;
+                                                          DateTime hoy2 =
+                                                              DateTime.now();
+                                                          horaFinProv =
+                                                              DateTime(
+                                                                  0,
+                                                                  0,
+                                                                  0,
+                                                                  hoy2.hour,
+                                                                  hoy2.minute,
+                                                                  hoy2.second);
+                                                          ultRegistro
+                                                                  .finSesionP =
+                                                              horaFinProv;
+                                                          rondas = 0;
+                                                          if (ultRegistro
+                                                              .anotacionesP
+                                                              .isEmpty) {
+                                                            ultRegistro
+                                                                    .anotacionesP =
+                                                                "Sin comentarios";
+                                                          }
+                                                          addHistory(
+                                                              ultRegistro);
+                                                          resetState();
+                                                          Navigator.of(context)
+                                                              .pop();
+                                                          if (widget
+                                                                  .nombreSesion !=
+                                                              null) {
+                                                            _mostrarDialogoTareaCompletada(
+                                                                context);
+                                                          }
+                                                        },
+                                                        child: const Text(
+                                                            "Finalizar"))
+                                                  ]),
+                                            ]);
+                                      });
+                                }
+                              : null,
+                          child: const Text("Finalizar Sesión")),
                     ),
-                  ));
+                    StreamBuilder<Object>(
+                        stream: _tomatesStreamController.stream,
+                        initialData: tomates,
+                        builder: (context, snapshot) {
+                          return Card(
+                              margin: const EdgeInsets.all(10.0),
+                              shape: RoundedRectangleBorder(
+                                  side: BorderSide(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .outline),
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(15))),
+                              child: SizedBox(
+                                height: 100.0,
+                                width: 260.0,
+                                child: StreamBuilder<Object>(
+                                    stream: _tomatesStreamController.stream,
+                                    initialData: tomates,
+                                    builder: (context, snapshot) {
+                                      return ListView.builder(
+                                          itemCount: 4,
+                                          scrollDirection: Axis.horizontal,
+                                          itemBuilder: (context, index) {
+                                            bool activado = index < tomates;
+                                            return Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: Image.asset(
+                                                  activado
+                                                      ? 'assets/tomateIcon.png'
+                                                      : 'assets/dark_tomateIcon.png',
+                                                  width: 50,
+                                                  height: 50,
+                                                ));
+                                          });
+                                    }),
+                              ));
+                        }),
+                    Center(
+                      child: Text(
+                          "Pomodoros totales: ${(rondas * 4) + tomates}",
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                    )
+                  ],
+                );
+              },
+            ),
+            FutureBuilder<List<HistorialPomData>>(
+              future: Provider.of<AppDatabase>(context).getRegistrosPList(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
                 } else {
-                  return ListView.builder(
-                    reverse: true,
-                    itemCount: registros.length,
-                    itemBuilder: (context, index) {
-                      final registro = registros[index];
-                      // Aquí puedes construir un widget para mostrar la información del registro en la posición 'index'
-                      return InkWell(
-                          onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        DetalleRegistro(registro: registro)));
-                          },
-                          child: Card(
-                            child: Row(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFFD37A)
-                                        .withOpacity(0.5),
-                                    borderRadius: BorderRadius.circular(12.5),
-                                  ),
-                                  width: 100,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(5.0),
-                                    child: Text(
-                                      registro.nombreSesionP,
-                                      textAlign: TextAlign.center,
+                  final registros = snapshot.data;
+                  if (registros == null || registros.isEmpty) {
+                    return const Center(
+                        child: Text(
+                      'Aún no hay registros',
+                      style: TextStyle(
+                        fontSize: 24,
+                        color: Colors.black54,
+                      ),
+                    ));
+                  } else {
+                    return ListView.builder(
+                      reverse: true,
+                      itemCount: registros.length,
+                      itemBuilder: (context, index) {
+                        final registro = registros[index];
+                        return InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          DetalleRegistro(registro: registro)));
+                            },
+                            child: Card(
+                              child: Row(
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFFD37A)
+                                          .withOpacity(0.5),
+                                      borderRadius: BorderRadius.circular(12.5),
+                                    ),
+                                    width: 100,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(5.0),
+                                      child: Text(
+                                        registro.nombreSesionP,
+                                        textAlign: TextAlign.center,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                Column(
-                                  children: [
-                                    // Primera fila con la fecha y la hora
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                              left: 25.0,
-                                              right: 8.0,
-                                              bottom: 8.0),
-                                          child: Text(DateFormat('dd/MM/yyyy')
-                                              .format(registro.fechaSesionP)),
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                              left: 40.0,
-                                              right: 8.0,
-                                              bottom: 8.0),
-                                          child: Text(DateFormat('HH:mm')
-                                              .format(registro.horaInicioP)),
-                                        ),
-                                      ],
-                                    ),
-                                    // Segunda fila con el número de rondas centrado
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        //TODO CAMBIAR EL SUBSTRING POR MINUTOS REALES
-                                        Text(
-                                            "Rondas de: ${registro.tiempoSesionP.substring(3, 5)} minutos"),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                // Esto alineará la columna a la derecha de la tarjeta
-                                Expanded(
-                                  child: Align(
-                                    alignment: Alignment.centerRight,
-                                    child: Column(
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceEvenly,
-                                          children: [
-                                            Text(
-                                              "${registro.pomodorosP}",
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20),
-                                            ),
-                                            Image.asset('assets/tomateIcon.png',
-                                                height: 35, width: 35),
-                                          ],
-                                        ),
-                                      ],
+                                  Column(
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                left: 25.0,
+                                                right: 8.0,
+                                                bottom: 8.0),
+                                            child: Text(DateFormat('dd/MM/yyyy')
+                                                .format(registro.fechaSesionP)),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                left: 40.0,
+                                                right: 8.0,
+                                                bottom: 8.0),
+                                            child: Text(DateFormat('HH:mm')
+                                                .format(registro.horaInicioP)),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                              "Rondas de: ${registro.tiempoSesionP.substring(3, 5)} minutos"),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  Expanded(
+                                    child: Align(
+                                      alignment: Alignment.centerRight,
+                                      child: Column(
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              Text(
+                                                "${registro.pomodorosP}",
+                                                style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20),
+                                              ),
+                                              Image.asset(
+                                                  'assets/tomateIcon.png',
+                                                  height: 35,
+                                                  width: 35),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ));
-                    },
-                  );
+                                ],
+                              ),
+                            ));
+                      },
+                    );
+                  }
                 }
-              }
-            },
-          )
-        ]),
+              },
+            )
+          ]),
+        ),
       ),
     );
   }

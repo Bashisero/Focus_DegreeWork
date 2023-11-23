@@ -70,9 +70,9 @@ class _DescansoPomState extends State<DescansoPom> {
   void initState() {
     super.initState();
     if (widget.tomates == 4) {
-      iniciarDescanso(900);
+      iniciarDescanso(5);
     } else {
-      iniciarDescanso(300);
+      iniciarDescanso(5);
     }
   }
 
@@ -86,14 +86,39 @@ class _DescansoPomState extends State<DescansoPom> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: ()async {
-        Navigator.pop(context, widget.tomates);
+      onWillPop: () async {
+        showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) {
+              return AlertDialog(
+                  title: const Text("¿Saltar descanso?"),
+                  content: const Text(
+                      "¿Está seguro que desea cancelar su descanso?"),
+                  actions: [
+                    TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text("Continuar")),
+                    TextButton(
+                        onPressed: () {
+                          setState(() {
+                            timerDP.cancel();
+                          });
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pop(widget.tomates);
+                        },
+                        child: const Text("Saltar descanso"))
+                  ]);
+            });
         return true;
       },
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.primary,
-          title: const Text("Descanso", style: TextStyle(color: Color(0xFFFAF5F1))),
+          title: const Text("Descanso",
+              style: TextStyle(color: Color(0xFFFAF5F1))),
         ),
         body: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -105,8 +130,8 @@ class _DescansoPomState extends State<DescansoPom> {
                   stream: onUpdate,
                   builder: (context, snapshot) {
                     return Text(formaTiempo(),
-                        style:
-                            const TextStyle(fontSize: 60, color: Colors.black54));
+                        style: const TextStyle(
+                            fontSize: 60, color: Colors.black54));
                   },
                 ),
               ),
@@ -172,7 +197,8 @@ class _DescansoPomState extends State<DescansoPom> {
                         ]);
                   });
             },
-            child: const Icon(Icons.skip_next_rounded, color: Color(0xFFFAF5F1))),
+            child:
+                const Icon(Icons.skip_next_rounded, color: Color(0xFFFAF5F1))),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       ),
     );

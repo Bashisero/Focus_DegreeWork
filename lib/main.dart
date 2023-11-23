@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
           '/proyectos': (context) => const Projects(),
           '/lluvia': (context) => const Ideas(),
         },
-        title: 'Flutter Demo',
+        title: 'ZenTasker',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF356D64)),
@@ -159,8 +159,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         contentLocation: ContentLocation.below,
                         overflowMode: OverflowMode.extendBackground,
                         description: const Text(
-                          'Pomodoro te permite trabajar usando sesiones de tiempos establecidos con descansos periódicos fijos',
-                        ),
+                            "Pomodoro te permite trabajar usando sesiones de tiempos establecidos con descansos periódicos fijos. Aquí podrás iniciar sesiones de Pomodoro y ver el historial de las sesiones que has hecho"),
                         tapTarget: Image.asset('assets/wombatTomate.png'),
                         child: InkWell(
                           onTap: () {
@@ -186,8 +185,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         contentLocation: ContentLocation.below,
                         tapTarget: Image.asset('assets/wombatFlow.png'),
                         description: const Text(
-                          'FlowTime te permite trabajar indefinidamente enfocado en una sola tarea, basándose en la teoría del flujo, donde le das rienda suelta a tu capacidad de enfocarte en algo sin noción de tiempo',
-                        ),
+                            'FlowTime se basa en la teoría del flujo, la cual consiste en esos momentos en los que estás absorbido por una actividad en concreta y pierdes incluso la noción del tiempo, pudiendo desenvolverte en esto indefinidamente. Tiene un enfoque mayormente enfocado a tareas de creativas, de análisis, y resolución de problemas, Aquí podrás iniciar sesiones de Flowtime, y ver el historial de las sesiones que has hecho, así como registrar las interrupciones que hayas tenido en media sesión'),
                         child: InkWell(
                             // Botón FlowTime
                             onTap: () {
@@ -213,7 +211,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   backgroundOpacity: 0.8,
                   tapTarget: Image.asset('assets/wombatProyectos.png'),
                   description: const Text(
-                    '¿No es mejor tener tus actividades anotadas y distribuidas?, aquí puedes tener proyectos divididos en tareas',
+                    '¿No es mejor tener tus actividades anotadas y distribuidas?, aquí puedes tener proyectos divididos en tareas, las cuales puedes enviar a cualquiera de ambas técnicas para empezar a llevarlas a cabo.',
                   ),
                   child: ElevatedButton(
                       // Botón Proyectos
@@ -389,7 +387,7 @@ class InfoDialogContentState extends State<InfoDialogContent> {
           Padding(
               padding: EdgeInsets.only(top: 25.0),
               child: Text(
-                  "Pomodoro te permite trabajar usando sesiones de tiempos establecidos con descansos periódicos fijos. Aquí podrás realizar tareas anonimas de Pomodoro y ver el historial de las sesiones que has hecho")),
+                  "Pomodoro te permite trabajar usando sesiones de tiempos establecidos con descansos periódicos fijos. Puedes realizar tareas anonimas de Pomodoro y ver el historial de las sesiones que has hecho, o puedes hacer tareas que ya tengas creadas en la sección de Proyectos")),
         ],
       ),
     ),
@@ -403,7 +401,7 @@ class InfoDialogContentState extends State<InfoDialogContent> {
           Padding(
             padding: EdgeInsets.only(top: 25.0, bottom: 5.0),
             child: Text(
-                'FlowTime se basa en la teoría del flujo, la cual consiste en esos momentos en los que estás absorbido por una actividad en concreta y pierdes incluso la noción del tiempo, pudiendo desenvolverte en esto indefinidamente. Tiene un enfoque mayormente enfocado a tareas de creativas, de análisis, y resolución de problemas, Aquí podrás realizar tareas anonimas de Flowtime y ver el historail de las sesiones que has hecho, así como registrar las interrupciones que hayas tenido en media sesión'),
+                'FlowTime se basa en la teoría del flujo, la cual consiste en esos momentos en los que estás absorbido por una actividad en concreta y pierdes incluso la noción del tiempo, pudiendo desenvolverte en esto indefinidamente. Tiene un enfoque mayormente enfocado a tareas de creativas, de análisis, y resolución de problemas, Puedes realizar tareas anónimas usando Flowtime, o bien puedes hacer tareas que ya tengas creadas dentro de un proyecto, así como ver el historial de las sesiones que has hecho. También puedes registrar las interrupciones que hayas tenido en media sesión'),
           ),
         ],
       ),
@@ -418,7 +416,7 @@ class InfoDialogContentState extends State<InfoDialogContent> {
           Padding(
             padding: EdgeInsets.only(top: 25.0, bottom: 5.0),
             child: Text(
-                'Llevar un control visual de tus pendientes, sea trabajo o proyectos personales, es una gran forma de empezar a visualizar tu progreso, tu rendimiento, ¡E incluso tu motivación para hacer algo!. Aquí puedes registrarlas, además de poder realizarlas directamente con cualquiera de ambas técnicas.'),
+                'Llevar un control visual de tus pendientes, sea trabajo o proyectos personales, es una gran forma de empezar a visualizar tu progreso, tu rendimiento, ¡E incluso tu motivación para hacer algo! Usando Proyectos puedes registrarlas, además de poder realizarlas directamente con cualquiera de ambas técnicas.'),
           ),
         ],
       ),
