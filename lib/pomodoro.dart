@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, unused_local_variable
 import 'package:flutter/material.dart';
 import 'package:tesis/descansoPom.dart';
 import 'package:tesis/detalleRegistro.dart';
@@ -9,7 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:audioplayers/audioplayers.dart';
 
-const List<String> list = <String>["00:05", "00:10", "20:00", "25:00", "30:00"];
+const List<String> list = <String>["00:05", "15:00", "20:00", "25:00", "30:00"];
 String tSesionProv = "";
 String nombreSesionProv = "";
 RegistroPom ultRegistro = RegistroPom.empty();
@@ -86,7 +86,7 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
           tomates++;
           _tomatesStreamController.add(tomates);
           if (tomates == 4) {
-            tomates = 0; // Reiniciar el contador de tomates
+            // Reiniciar el contador de tomates
             rondas++;
             showDialog(
               context: context,
@@ -109,7 +109,14 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
                             context,
                             MaterialPageRoute(
                                 builder: (context) => DescansoPom(
-                                    tomates: tomates, rondas: rondas)));
+                                    tomates: tomates,
+                                    rondas: rondas))).then((returnedTomates) {
+                          if (returnedTomates == 4) {
+                            setState(() {
+                              tomates = 0;
+                            });
+                          }
+                        });
                       },
                       child: const Text("Continuar"),
                     ),
@@ -139,7 +146,14 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
                             context,
                             MaterialPageRoute(
                                 builder: (context) => DescansoPom(
-                                    tomates: tomates, rondas: rondas)));
+                                    tomates: tomates,
+                                    rondas: rondas))).then((returnedTomates) {
+                          if (returnedTomates == 4) {
+                            setState(() {
+                              tomates = 0;
+                            });
+                          }
+                        });
                       },
                       child: const Text("Continuar"),
                     ),
@@ -206,6 +220,15 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
       sesionIniciada = false;
       bloquearTextField = false;
     });
+  }
+
+  Color obtenerColorDropdown(bool ver, BuildContext context){
+    if(!ver) {
+      return Colors.black;
+    }
+    else{
+      return Colors.grey;
+    }
   }
 
   @override
@@ -291,7 +314,7 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
                   ),
                   SizedBox(
                     width: 250,
-                    height: 50,
+                    height: 70,
                     child: Stack(
                       children: [
                         TextField(
@@ -324,7 +347,8 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
                       ),
                     ),
                   ),
-                  Text("Rondas: $rondas"),
+                  Text("Rondas: $rondas",
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
@@ -336,18 +360,31 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
                                   context: context,
                                   builder: (BuildContext context) {
                                     return AlertDialog(
-                                      title: const Text('Selecciona una hora'),
+                                      title: const Text(
+                                          'Elige tu tiempo de cada Pomodoro',
+                                          textAlign: TextAlign.center),
                                       content: Column(
                                         mainAxisSize: MainAxisSize.min,
-                                        children: list.map((String value) {
-                                          return ListTile(
-                                            title: Text(value),
-                                            onTap: () {
-                                              setState(() {
-                                                selectedTime = value;
-                                                Navigator.of(context).pop();
-                                              });
-                                            },
+                                        children:
+                                            list.asMap().entries.map((entry) {
+                                          int idx = entry.key;
+                                          String value = entry.value;
+
+                                          return Column(
+                                            children: <Widget>[
+                                              ListTile(
+                                                title: Text(value),
+                                                onTap: () {
+                                                  setState(() {
+                                                    selectedTime = value;
+                                                    Navigator.of(context).pop();
+                                                  });
+                                                },
+                                              ),
+                                              // Agregar un Divider si no es el último elemento
+                                              if (idx != list.length - 1)
+                                                const Divider(),
+                                            ],
                                           );
                                         }).toList(),
                                       ),
@@ -362,7 +399,8 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
                             ),
                             Text(
                               selectedTime,
-                              style: const TextStyle(
+                              style: TextStyle(
+                                color: obtenerColorDropdown(bloquearDropdown, context),
                                 fontSize: 30,
                                 fontWeight: FontWeight.w300,
                               ),
@@ -404,7 +442,7 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
                                         .showSnackBar(const SnackBar(
                                       content:
                                           Text('Ingresa un nombre de sesión'),
-                                      backgroundColor: Colors.purple,
+                                      backgroundColor: Color(0xFF356D64),
                                       duration: Duration(seconds: 2),
                                     ));
                                   }
@@ -440,7 +478,10 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
                                                       context, 'Detener');
                                                   cronoVisible = !cronoVisible;
                                                   bloquearDropdown = false;
-                                                  bloquearTextField = false;
+                                                  if (widget.nombreSesion ==
+                                                      null) {
+                                                    bloquearTextField = false;
+                                                  }
                                                 },
                                                 child: const Text("Detener"),
                                               )
@@ -500,7 +541,8 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
                                                           detenerCrono();
                                                           ultRegistro
                                                                   .pomodorosP =
-                                                              tomatesTotales;
+                                                              (rondas * 4) +
+                                                                  tomates;
                                                           ultRegistro
                                                                   .numRondasP =
                                                               rondas;
@@ -539,7 +581,6 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
                                                         ultRegistro.finSesionP =
                                                             horaFinProv;
                                                         rondas = 0;
-                                                        tomatesTotales = 0;
                                                         if (ultRegistro
                                                             .anotacionesP
                                                             .isEmpty) {
@@ -571,39 +612,40 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
                       stream: _tomatesStreamController.stream,
                       initialData: tomates,
                       builder: (context, snapshot) {
-                        return Text(snapshot.data.toString());
+                        return Card(
+                            margin: const EdgeInsets.all(10.0),
+                            shape: RoundedRectangleBorder(
+                                side: BorderSide(
+                                    color:
+                                        Theme.of(context).colorScheme.outline),
+                                borderRadius: const BorderRadius.all(
+                                    Radius.circular(15))),
+                            child: SizedBox(
+                              height: 100.0,
+                              width: 260.0,
+                              child: StreamBuilder<Object>(
+                                  stream: _tomatesStreamController.stream,
+                                  initialData: tomates,
+                                  builder: (context, snapshot) {
+                                    return ListView.builder(
+                                        itemCount: 4,
+                                        scrollDirection: Axis.horizontal,
+                                        itemBuilder: (context, index) {
+                                          bool activado = index < tomates;
+                                          return Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Image.asset(
+                                                activado
+                                                    ? 'assets/tomateIcon.png'
+                                                    : 'assets/dark_tomateIcon.png',
+                                                width: 50,
+                                                height: 50,
+                                              ));
+                                        });
+                                  }),
+                            ));
                       }),
-                  Card(
-                      //margin: const EdgeInsets.all(10.0),
-                      shape: RoundedRectangleBorder(
-                          side: BorderSide(
-                              color: Theme.of(context).colorScheme.outline),
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(15))),
-                      child: SizedBox(
-                        height: 100.0,
-                        width: 260.0,
-                        child: StreamBuilder<Object>(
-                            stream: _tomatesStreamController.stream,
-                            initialData: tomates,
-                            builder: (context, snapshot) {
-                              return ListView.builder(
-                                  itemCount: 4,
-                                  scrollDirection: Axis.horizontal,
-                                  itemBuilder: (context, index) {
-                                    bool activado = index < tomates;
-                                    return Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Image.asset(
-                                          activado
-                                              ? 'assets/tomateIcon.png'
-                                              : 'assets/dark_tomateIcon.png',
-                                          width: 50,
-                                          height: 50,
-                                        ));
-                                  });
-                            }),
-                      ))
                 ],
               );
             },
@@ -691,7 +733,7 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
                                       children: [
                                         //TODO CAMBIAR EL SUBSTRING POR MINUTOS REALES
                                         Text(
-                                            "Rondas de: ${registro.tiempoSesionP.substring(0, 5)} minutos"),
+                                            "Rondas de: ${registro.tiempoSesionP.substring(3, 5)} minutos"),
                                       ],
                                     ),
                                   ],
@@ -750,7 +792,6 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
 
     // Recupera la tarea actualizada para verificar
     var tareaActualizada = await db.getTareaById(idTarea);
-    print("Tarea directamente actualizada: $tareaActualizada");
   }
 
   void _mostrarDialogoTareaCompletada(BuildContext context) {
@@ -773,9 +814,7 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
               onPressed: () async {
                 await pruebaDirectaActualizacionTarea(widget.tareaId!);
                 Navigator.of(context).pop();
-                Navigator.of(context).pop(); // Cierra la pantalla de Flowtime
                 Navigator.of(context).pop();
-                // Considera llamar a setState() aquí si es necesario actualizar la UI
               },
               child: const Text('Sí'),
             ),

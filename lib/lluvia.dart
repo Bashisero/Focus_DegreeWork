@@ -134,14 +134,15 @@ class _IdeasState extends State<Ideas> {
                       child: BottomNavigationBar(
                         items: const [
                           BottomNavigationBarItem(
-                            icon: Icon(Icons.home),
-                            label: 'Home',
+                            icon: Icon(Icons.lightbulb_outline_rounded),
+                            label: 'Idear',
                           ),
                           BottomNavigationBarItem(
-                              icon: Icon(Icons.keyboard), label: 'Keyboard'),
+                              icon: Icon(Icons.sticky_note_2_outlined),
+                              label: 'Ideas Generales'),
                           BottomNavigationBarItem(
                             icon: Icon(Icons.favorite),
-                            label: 'Favorites',
+                            label: 'Ideas Potenciales',
                           ),
                         ],
                         currentIndex: selectedIndex,
@@ -166,11 +167,11 @@ class _IdeasState extends State<Ideas> {
                             label: Text('Home'),
                           ),
                           NavigationRailDestination(
-                              icon: Icon(Icons.loop_rounded),
-                              label: Text('Descartadas')),
+                              icon: Icon(Icons.sticky_note_2_outlined),
+                              label: Text('Ideas Generales')),
                           NavigationRailDestination(
                             icon: Icon(Icons.favorite),
-                            label: Text('Favorites'),
+                            label: Text('Ideas Potenciales'),
                           ),
                         ],
                         selectedIndex: selectedIndex,
@@ -187,10 +188,6 @@ class _IdeasState extends State<Ideas> {
               }
             },
           ),
-          Positioned(
-              right: 257,
-              bottom: 63,
-              child: Image.asset('assets/wombatL.png', height: 130, width: 130))
         ],
       ),
     );
@@ -218,7 +215,7 @@ class GeneratorPage extends StatelessWidget {
           BigCard(controller: textController),
           const SizedBox(height: 10),
           Row(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               ElevatedButton(
                 onPressed: () {
@@ -226,23 +223,36 @@ class GeneratorPage extends StatelessWidget {
                   appState.addDiscarded(textController.text);
                   textController.clear();
                 },
-                child: const Text('Next'),
+                child: const Text('Siguiente...'),
               ),
               const SizedBox(width: 10),
-              IconButton(
-                icon: Icon(
-                  appState.favorites.contains(textController.text)
-                      ? Icons.favorite
-                      : Icons.favorite_border,
-                ),
+              ElevatedButton(
                 onPressed: () {
                   appState.addUserInputToHistory(textController.text, true);
                   textController.clear();
                 },
+                child: Row(
+                  mainAxisSize: MainAxisSize
+                      .min, // Para que el Row no ocupe todo el ancho disponible
+                  children: <Widget>[
+                    Icon(
+                      appState.favorites.contains(textController.text)
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                    ),
+                    const SizedBox(
+                        width: 4), // Espacio entre el ícono y el texto
+                    const Text("Me gusta"),
+                  ],
+                ),
               ),
             ],
           ),
-          const Spacer(flex: 2),
+          const Spacer(flex: 1),
+          Positioned(
+              right: MediaQuery.of(context).size.width * 0.41,
+              bottom: MediaQuery.of(context).size.height * 0.075,
+              child: Image.asset('assets/wombatL.png', height: 85, width: 85))
         ],
       ),
     );
@@ -290,12 +300,13 @@ class FavoritesPage extends StatelessWidget {
     return Column(
       children: [
         Expanded(
-          child: ListView.builder(
+          child: ListView.separated(
             itemCount: appState.discarded.length,
             itemBuilder: (context, index) {
               final item = appState.discarded[index];
               return ListTile(
-                title: Text(item),
+                title: Text(item,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -316,8 +327,15 @@ class FavoritesPage extends StatelessWidget {
                 ),
               );
             },
+            separatorBuilder: (context, index) {
+              return const Divider();
+            },
           ),
         ),
+        Positioned(
+            right: MediaQuery.of(context).size.width * 0.41,
+            bottom: MediaQuery.of(context).size.height * 0.075,
+            child: Image.asset('assets/wombatDescartada.png', height: 85, width: 85))
       ],
     );
   }
@@ -333,22 +351,31 @@ class Descartadas extends StatelessWidget {
     return Column(
       children: [
         Expanded(
-          child: ListView.builder(
+          child: ListView.separated(
             itemCount: appState.favorites.length,
             itemBuilder: (context, index) {
               final item = appState.favorites[index];
               return ListTile(
-                  title: Text(item),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () {
-                      appState.removeFavorite(item);
-                      appState.addDiscarded(item);
-                    },
-                  ));
+                title: Text(item,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () {
+                    appState.removeFavorite(item);
+                    appState.addDiscarded(item);
+                  },
+                ),
+              );
+            },
+            separatorBuilder: (context, index) {
+              return const Divider();
             },
           ),
         ),
+        Positioned(
+            right: MediaQuery.of(context).size.width * 0.41,
+            bottom: MediaQuery.of(context).size.height * 0.075,
+            child: Image.asset('assets/wombatIdea.png', height: 85, width: 85))
       ],
     );
   }

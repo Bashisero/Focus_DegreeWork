@@ -1,4 +1,4 @@
-// ignore_for_file: file_names, avoid_print
+// ignore_for_file: file_names,, unused_local_variable
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tesis/drift_database.dart';
@@ -34,6 +34,7 @@ class _DetallesProyectoState extends State<DetallesProyecto> {
       initialIndex: 0,
       length: 2,
       child: Scaffold(
+        resizeToAvoidBottomInset: true,
         appBar: AppBar(
           title: Text(widget.proyecto.nombreProyecto),
           bottom: const TabBar(
@@ -150,196 +151,208 @@ class TareaCard extends StatelessWidget {
     return Card(
       color: _obtenerColorPorUrgencia(tarea.urgencia, context),
       margin: const EdgeInsets.all(10.0),
-      child: ListTile(
-        title: Text(tarea.nombreTarea),
-        subtitle: Text(tarea.descripcion),
-        trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-          if (!tarea.completada)
-            IconButton(
-                onPressed: () {
-                  showDialog(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                            title: const Text("Realizar Tarea"),
-                            content: Text(
-                                "¿Con qué técnica desea realizar \"${tarea.nombreTarea}?\""),
-                            actions: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  ElevatedButton(
-                                      onPressed: () {
-                                        print(
-                                            "Enviando a Pomodoro - Tarea ID: ${tarea.idTarea}, Nombre: ${tarea.nombreTarea}");
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) => Pomodoro(
-                                                    nombreSesion:
-                                                        tarea.nombreTarea,
-                                                    tareaId: tarea.idTarea,
-                                                    proyectoId:
-                                                        tarea.idProyecto,
-                                                    urgencia: tarea.urgencia,
-                                                    descrip: tarea
-                                                        .descripcion))).then(
-                                            (_) {
-                                          Provider.of<TareaModel>(context,
-                                                  listen: false)
-                                              .obtenerTareasDesdeBaseDeDatos(
-                                                  idProyecto,
-                                                  Provider.of<AppDatabase>(
-                                                      context,
-                                                      listen: false));
-                                          Navigator.pop(context);
-                                        });
-                                      },
-                                      child: const Text("Pomodoro")),
-                                  ElevatedButton(
-                                      onPressed: () {
-                                        print(
-                                            "Enviando a Flowtime - Tarea ID: ${tarea.idTarea}, Nombre: ${tarea.nombreTarea}");
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) => FlowTime(
-                                                    nombreSesion:
-                                                        tarea.nombreTarea,
-                                                    tareaId: tarea.idTarea,
-                                                    proyectoId:
-                                                        tarea.idProyecto,
-                                                    urgencia: tarea.urgencia,
-                                                    descrip: tarea
-                                                        .descripcion))).then(
-                                            (_) {
-                                          Provider.of<TareaModel>(context,
-                                                  listen: false)
-                                              .obtenerTareasDesdeBaseDeDatos(
-                                                  idProyecto,
-                                                  Provider.of<AppDatabase>(
-                                                      context,
-                                                      listen: false));
-                                          Navigator.pop(context);
-                                        });
-                                      },
-                                      child: const Text("Flowtime"))
-                                ],
-                              ),
-                              Center(
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: const Text("Cancelar"),
-                                ),
-                              )
-                            ]);
-                      });
-                },
-                icon: const Icon(Icons.play_circle)),
-          if (!tarea.completada)
-            IconButton(
-                onPressed: () {
-                  _mostrarDialogoConfirmacion(context, tarea);
-                },
-                icon: const Icon(Icons.check)),
-          IconButton(
-            onPressed: () {
-              _mostrarDialogoEliminar(context, tarea);
-            },
-            icon: const Icon(Icons.delete),
-            color: Colors.red,
-          )
-        ]),
+      child: ExpansionTile(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(tarea.nombreTarea,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            Row(
+                mainAxisSize: MainAxisSize.min,
+                children: _buildTrailingButtons(context)),
+          ],
+        ),
+        children: [
+          Padding(
+            padding:
+                const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                tarea.descripcion,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Color _obtenerColorPorUrgencia(int urgencia, BuildContext context) {
-    switch (urgencia) {
-      case 1:
-        return const Color(0xffbdecb6); // Color para urgencia baja
-      case 2:
-        return const Color(0xFFFDFD96); // Color para urgencia normal
-      case 3:
-        return const Color(0xFFFF9688); // Color para urgencia alta
-      default:
-        return Theme.of(context).cardColor; // Color por defecto
+  List<Widget> _buildTrailingButtons(BuildContext context) {
+    List<Widget> buttons = [];
+    if (!tarea.completada) {
+      buttons.add(IconButton(
+          onPressed: () {
+            showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                      title: const Text("Realizar Tarea"),
+                      content: SingleChildScrollView(
+                        child: Text(
+                            "¿Con qué técnica desea realizar \"${tarea.nombreTarea}?\""),
+                      ),
+                      actions: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            ElevatedButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => Pomodoro(
+                                              nombreSesion: tarea.nombreTarea,
+                                              tareaId: tarea.idTarea,
+                                              proyectoId: tarea.idProyecto,
+                                              urgencia: tarea.urgencia,
+                                              descrip: tarea
+                                                  .descripcion))).then((_) {
+                                    Provider.of<TareaModel>(context,
+                                            listen: false)
+                                        .obtenerTareasDesdeBaseDeDatos(
+                                            idProyecto,
+                                            Provider.of<AppDatabase>(context,
+                                                listen: false));
+                                    Navigator.pop(context);
+                                  });
+                                },
+                                child: const Text("Pomodoro")),
+                            ElevatedButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => FlowTime(
+                                              nombreSesion: tarea.nombreTarea,
+                                              tareaId: tarea.idTarea,
+                                              proyectoId: tarea.idProyecto,
+                                              urgencia: tarea.urgencia,
+                                              descrip: tarea
+                                                  .descripcion))).then((_) {
+                                    Provider.of<TareaModel>(context,
+                                            listen: false)
+                                        .obtenerTareasDesdeBaseDeDatos(
+                                            idProyecto,
+                                            Provider.of<AppDatabase>(context,
+                                                listen: false));
+                                    Navigator.pop(context);
+                                  });
+                                },
+                                child: const Text("Flowtime"))
+                          ],
+                        ),
+                        Center(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text("Cancelar"),
+                          ),
+                        )
+                      ]);
+                });
+          },
+          icon: const Icon(Icons.play_circle)));
     }
-  }
-
-  Future<void> _mostrarDialogoConfirmacion(
-      BuildContext context, TareaData tarea) async {
-    return showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Confirmar"),
-          content: const Text("¿Marcar tarea como completada?"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text("Cancelar"),
-            ),
-            TextButton(
-              onPressed: () async {
-                print(
-                    'Estado de la tarea antes del cambio de estado: ${tarea.completada}');
-                await Provider.of<TareaModel>(context, listen: false)
-                    .cambiarEstadoTarea(context, tarea);
-                TareaData? tareaActualizada =
-                    // ignore: use_build_context_synchronously
-                    await Provider.of<TareaModel>(context, listen: false)
-                        .getTareaPorId(context, tarea.idTarea);
-                print(
-                    "Estado de la tarea después del cambio: ${tareaActualizada?.completada}");
-                // ignore: use_build_context_synchronously
-                Navigator.of(context).pop();
-              },
-              child: const Text("Confirmar"),
-            ),
-          ],
-        );
+    if (!tarea.completada) {
+      buttons.add(IconButton(
+          onPressed: () {
+            _mostrarDialogoConfirmacion(context, tarea);
+          },
+          icon: const Icon(Icons.check)));
+    }
+    buttons.add(IconButton(
+      onPressed: () {
+        _mostrarDialogoEliminar(context, tarea);
       },
-    );
+      icon: const Icon(Icons.delete),
+      color: Colors.red,
+    ));
+    return buttons;
   }
+}
 
-  Future<void> _mostrarDialogoEliminar(
-      BuildContext context, TareaData tarea) async {
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Eliminar Tarea'),
-          content: Text(
-              '¿Estás seguro de que quieres eliminar "${tarea.nombreTarea}"?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(); // Cerrar el diálogo
-              },
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () async {
-                // Aquí iría la lógica para eliminar la tarea de la base de datos
-                await Provider.of<TareaModel>(context, listen: false)
-                    .borrarTarea(context, tarea);
-                // ignore: use_build_context_synchronously
-                Navigator.of(dialogContext)
-                    .pop(); // Cerrar el diálogo después de eliminar
-              },
-              child: const Text('Eliminar'),
-            ),
-          ],
-        );
-      },
-    );
+Color _obtenerColorPorUrgencia(int urgencia, BuildContext context) {
+  switch (urgencia) {
+    case 1:
+      return const Color(0xffbdecb6); // Color para urgencia baja
+    case 2:
+      return const Color(0xFFFDFD96); // Color para urgencia normal
+    case 3:
+      return const Color(0xFFFF9688); // Color para urgencia alta
+    default:
+      return Theme.of(context).cardColor; // Color por defecto
   }
+}
+
+Future<void> _mostrarDialogoConfirmacion(
+    BuildContext context, TareaData tarea) async {
+  return showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text("Confirmar"),
+        content: const Text("¿Marcar tarea como completada?"),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text("Cancelar"),
+          ),
+          TextButton(
+            onPressed: () async {
+              await Provider.of<TareaModel>(context, listen: false)
+                  .cambiarEstadoTarea(context, tarea);
+              TareaData? tareaActualizada =
+                  // ignore: use_build_context_synchronously
+                  await Provider.of<TareaModel>(context, listen: false)
+                      .getTareaPorId(context, tarea.idTarea);
+              // ignore: use_build_context_synchronously
+              Navigator.of(context).pop();
+            },
+            child: const Text("Confirmar"),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+Future<void> _mostrarDialogoEliminar(
+    BuildContext context, TareaData tarea) async {
+  return showDialog<void>(
+    context: context,
+    builder: (BuildContext dialogContext) {
+      return AlertDialog(
+        title: const Text('Eliminar Tarea'),
+        content: Text(
+            '¿Estás seguro de que quieres eliminar "${tarea.nombreTarea}"?'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop(); // Cerrar el diálogo
+            },
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () async {
+              // Aquí iría la lógica para eliminar la tarea de la base de datos
+              await Provider.of<TareaModel>(context, listen: false)
+                  .borrarTarea(context, tarea);
+              // ignore: use_build_context_synchronously
+              Navigator.of(dialogContext)
+                  .pop(); // Cerrar el diálogo después de eliminar
+            },
+            child: const Text('Eliminar'),
+          ),
+        ],
+      );
+    },
+  );
 }
 
 class TareaDialog extends StatefulWidget {
@@ -420,6 +433,12 @@ class _TareaDialogState extends State<TareaDialog> {
       ),
       actions: [
         TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text("Cancelar"),
+        ),
+        TextButton(
           onPressed: () async {
             if (nombreController.text == "" || nombreController.text.isEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -442,12 +461,6 @@ class _TareaDialogState extends State<TareaDialog> {
             }
           },
           child: const Text("Crear"),
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: const Text("Cancelar"),
         ),
       ],
     );

@@ -71,7 +71,7 @@ class DetalleFlow extends StatelessWidget {
                   const Text("Interrupciones Internas:",
                       style: estiloHistoriales),
                   Text(registro.internas.toString()),
-                  const Icon(Icons.anchor_outlined)
+                  const Icon(Icons.sensor_occupied_rounded)
                 ],
               ),
             ),
@@ -83,7 +83,7 @@ class DetalleFlow extends StatelessWidget {
                   const Text("Interrupciones Externas:",
                       style: estiloHistoriales),
                   Text(registro.externas.toString()),
-                  const Icon(Icons.sensor_occupied_outlined)
+                  const Icon(Icons.spatial_audio_rounded)
                 ],
               ),
             ),

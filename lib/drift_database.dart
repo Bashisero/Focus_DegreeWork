@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:drift/drift.dart';
@@ -146,27 +144,20 @@ class AppDatabase extends _$AppDatabase {
     int result = await (update(tarea)
           ..where((tbl) => tbl.idTarea.equals(item.idTarea)))
         .write(TareaCompanion(completada: Value(item.completada)));
-    print("Resultado de la actualización en la base de datos: $result");
     return result;
   }
 
   Future<TareaData> updateTareaYObtener(
       int idTarea, bool nuevoEstadoCompletado) async {
-    print(
-        "Actualizando tarea en DB - ID: $idTarea, Estado: $nuevoEstadoCompletado");
     var updateCount = await (update(tarea)
           ..where((t) => t.idTarea.equals(idTarea)))
         .write(TareaCompanion(completada: Value(nuevoEstadoCompletado)));
-    print("Número de filas actualizadas: $updateCount");
-
     if (updateCount == 1) {
       var tareaActualizada = await (select(tarea)
             ..where((t) => t.idTarea.equals(idTarea)))
           .getSingle();
-      print("Tarea actualizada en DB: $tareaActualizada");
       return tareaActualizada;
     } else {
-      print("No se pudo actualizar la tarea en la DB");
       throw Exception("Error al actualizar la tarea");
     }
   }
@@ -175,7 +166,6 @@ class AppDatabase extends _$AppDatabase {
     var resultado =
         await (select(tarea)..where((t) => t.idTarea.equals(id))).get();
     if (resultado.isNotEmpty) {
-      print("Resultado de getTareaById: $resultado");
       return resultado.first;
     }
     return null;

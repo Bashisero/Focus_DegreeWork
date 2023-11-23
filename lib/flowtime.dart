@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -34,7 +34,7 @@ class FlowTime extends StatefulWidget {
   State<FlowTime> createState() => _FlowTimeState();
 }
 
-class _FlowTimeState extends State<FlowTime> {
+class _FlowTimeState extends State<FlowTime> with WidgetsBindingObserver {
   final TextEditingController _textFlowController = TextEditingController();
   bool blockTF = false;
   int intInternas = 0;
@@ -43,6 +43,8 @@ class _FlowTimeState extends State<FlowTime> {
   Timer? timerFl;
   int segundosFl = 0;
   bool sesionIniciada = false;
+  bool wasRunningBeforePause = false;
+  bool esPrimeraVez = true;
 
   Future<void> addHistory(RegistroFlow reg) async {
     // Crea una instancia de HistorialPom y establece los valores de sus atributos.
@@ -82,16 +84,21 @@ class _FlowTimeState extends State<FlowTime> {
     });
   }
 
-  void iniciarCronoFl() {
+  void iniciarCronoFl(int totalTimeInSeconds) {
     if (!corriendoFl) {
       corriendoFl = true;
+      segundosFl = totalTimeInSeconds;
       timerFl = Timer.periodic(const Duration(seconds: 1), (timer) {
         setState(() {
           segundosFl++;
         });
-        hoy = DateTime.now();
-        horaInicioProv = DateTime(0, 0, 0, hoy.hour, hoy.minute, hoy.second);
-        ultFlow.inicSesionF = horaInicioProv;
+        if (esPrimeraVez) {
+          hoy = DateTime.now();
+          horaInicioProv = DateTime(0, 0, 0, hoy.hour, hoy.minute, hoy.second);
+          ultFlow.inicSesionF = horaInicioProv;
+          esPrimeraVez =
+              false; // Establecer a false después de la inicialización
+        }
       });
     }
   }
@@ -238,23 +245,45 @@ class _FlowTimeState extends State<FlowTime> {
       nombreFlowProv = _textFlowController.value.text;
       ultFlow = RegistroFlow.empty();
       sesionIniciada = false;
+      esPrimeraVez = true;
     });
   }
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (widget.nombreSesion != null) {
       nombreFlowProv = widget.nombreSesion!;
       _textFlowController.text = widget.nombreSesion!;
-      bloquearNombre();
+      setState(() {
+        blockTF = true;
+      });
     }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     timerFl?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.paused) {
+      wasRunningBeforePause = corriendoFl;
+      if (corriendoFl) {
+        corriendoFl = false;
+        timerFl?.cancel();
+      }
+    } else if (state == AppLifecycleState.resumed) {
+      if (wasRunningBeforePause) {
+        iniciarCronoFl(segundosFl); // Reanuda solo si estaba corriendo antes
+        wasRunningBeforePause = false;
+      }
+    }
   }
 
   @override
@@ -302,10 +331,10 @@ class _FlowTimeState extends State<FlowTime> {
                   ),
                   SizedBox(
                     width: 250,
-                    height: 50,
+                    height: 70,
                     child: Stack(children: [
                       TextField(
-                        enabled: !corriendoFl,
+                        enabled: !blockTF,
                         onChanged: (value) {
                           setState(() {
                             nombreFlowProv = value;
@@ -344,12 +373,14 @@ class _FlowTimeState extends State<FlowTime> {
                                   const SnackBar(
                                     content:
                                         Text('Ingresa un nombre de sesión'),
-                                    backgroundColor: Colors.purple,
+                                    backgroundColor: Color(0xFF356D64),
                                     duration: Duration(seconds: 2),
                                   ),
                                 );
                               } else {
-                                iniciarCronoFl();
+                                iniciarCronoFl(0);
+                                sesionIniciada = true;
+                                blockTF = true;
                               }
                             }
                           },
@@ -447,12 +478,12 @@ class _FlowTimeState extends State<FlowTime> {
                 ],
               );
             },
-          ), //////////         HISTORIAL
+          ),
           FutureBuilder<List<HistorialFlowData>>(
             future: Provider.of<AppDatabase>(context).getRegistrosFList(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const CircularProgressIndicator(); // Muestra un indicador de carga mientras se obtienen los datos
+                return const CircularProgressIndicator();
               } else if (snapshot.hasError) {
                 return Text('Error: ${snapshot.error}');
               } else {
@@ -472,7 +503,6 @@ class _FlowTimeState extends State<FlowTime> {
                     itemCount: registros.length,
                     itemBuilder: (context, index) {
                       final registro = registros[index];
-                      // Aquí puedes construir un widget para mostrar la información del registro en la posición 'index'
                       return InkWell(
                           onTap: () {
                             Navigator.push(
@@ -501,7 +531,6 @@ class _FlowTimeState extends State<FlowTime> {
                                 ),
                                 Column(
                                   children: [
-                                    // Primera fila con la fecha y la hora
                                     Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
@@ -524,7 +553,6 @@ class _FlowTimeState extends State<FlowTime> {
                                         ),
                                       ],
                                     ),
-                                    // Segunda fila con el número de rondas centrado
                                     Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
@@ -535,7 +563,6 @@ class _FlowTimeState extends State<FlowTime> {
                                     ),
                                   ],
                                 ),
-                                // Esto alineará la columna a la derecha de la tarjeta
                                 Expanded(
                                   child: Align(
                                     alignment: Alignment.centerRight,
@@ -546,7 +573,11 @@ class _FlowTimeState extends State<FlowTime> {
                                               MainAxisAlignment.end,
                                           children: [
                                             Text(
-                                                "${registro.internas + registro.externas}"),
+                                              "${registro.internas + registro.externas}",
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 20),
+                                            ),
                                             const Icon(
                                               Icons.warning_amber_rounded,
                                               color: Colors.red,
@@ -573,8 +604,6 @@ class _FlowTimeState extends State<FlowTime> {
 
   Future<void> pruebaDirectaActualizacionTarea(int idTarea) async {
     var db = Provider.of<AppDatabase>(context, listen: false);
-
-    // Actualiza la tarea directamente en la base de datos
     await db.updateTarea(TareaData(
       idTarea: idTarea,
       nombreTarea: widget.nombreSesion!,
@@ -582,12 +611,9 @@ class _FlowTimeState extends State<FlowTime> {
       idProyecto: widget.proyectoId!,
       urgencia: widget.urgencia!,
       descripcion: widget.descrip!,
-      // Asegúrate de incluir todos los otros campos necesarios aquí
     ));
-
-    // Recupera la tarea actualizada para verificar
+    // ignore: unused_local_variable
     var tareaActualizada = await db.getTareaById(idTarea);
-    print("Tarea directamente actualizada: $tareaActualizada");
   }
 
   void _mostrarDialogoTareaCompletada(BuildContext context) {
@@ -609,9 +635,8 @@ class _FlowTimeState extends State<FlowTime> {
             TextButton(
               onPressed: () async {
                 await pruebaDirectaActualizacionTarea(widget.tareaId!);
-                // Cierra el diálogo actual y vuelve a la pantalla de Tareas
-                Navigator.of(context).pop(); // Cierra este diálogo
-                Navigator.of(context).pop(); // Cierra la pantalla de Flowtime
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
               },
               child: const Text('Sí'),
             ),

@@ -8,7 +8,6 @@ import 'package:tesis/flowtime.dart';
 import 'package:tesis/models.dart';
 import 'package:tesis/pomodoro.dart';
 import 'package:tesis/projects.dart';
-import 'package:tesis/tools.dart';
 
 //
 void main() {
@@ -39,7 +38,6 @@ class MyApp extends StatelessWidget {
           '/flowtime': (context) => const FlowTime(),
           '/proyectos': (context) => const Projects(),
           '/lluvia': (context) => const Ideas(),
-          '/tools': (context) => const Tools(),
         },
         title: 'Flutter Demo',
         debugShowCheckedModeBanner: false,
@@ -155,9 +153,10 @@ class _MyHomePageState extends State<MyHomePage> {
                         featureId: 'pomodoroId',
                         title: const Text('Técnica Pomodoro'),
                         backgroundColor: Theme.of(context).primaryColor,
-                        backgroundOpacity: 0.7,
+                        backgroundOpacity: 0.8,
                         targetColor: Colors.white,
                         textColor: Colors.white,
+                        contentLocation: ContentLocation.below,
                         overflowMode: OverflowMode.extendBackground,
                         description: const Text(
                           'Pomodoro te permite trabajar usando sesiones de tiempos establecidos con descansos periódicos fijos',
@@ -183,7 +182,8 @@ class _MyHomePageState extends State<MyHomePage> {
                         targetColor: Colors.white,
                         textColor: Colors.white,
                         overflowMode: OverflowMode.extendBackground,
-                        backgroundOpacity: 0.7,
+                        backgroundOpacity: 0.8,
+                        contentLocation: ContentLocation.below,
                         tapTarget: Image.asset('assets/wombatFlow.png'),
                         description: const Text(
                           'FlowTime te permite trabajar indefinidamente enfocado en una sola tarea, basándose en la teoría del flujo, donde le das rienda suelta a tu capacidad de enfocarte en algo sin noción de tiempo',
@@ -210,7 +210,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   targetColor: Colors.white,
                   textColor: Colors.white,
                   overflowMode: OverflowMode.extendBackground,
-                  backgroundOpacity: 0.7,
+                  backgroundOpacity: 0.8,
                   tapTarget: Image.asset('assets/wombatProyectos.png'),
                   description: const Text(
                     '¿No es mejor tener tus actividades anotadas y distribuidas?, aquí puedes tener proyectos divididos en tareas',
@@ -239,7 +239,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   targetColor: Colors.white,
                   textColor: Colors.white,
                   overflowMode: OverflowMode.extendBackground,
-                  backgroundOpacity: 0.7,
+                  backgroundOpacity: 0.8,
                   tapTarget: Image.asset('assets/wombatIdeas.png'),
                   description: const Text(
                     'La clásica lluvia de ideas, en este apartado puedes filtrar qué ideas que se te vienen a la mente te gustan... Y cuáles quizá no tanto',
@@ -276,7 +276,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 featureId: 'infoId',
                 title: const Text('Información'),
                 overflowMode: OverflowMode.extendBackground,
-                backgroundOpacity: 0.7,
+                backgroundOpacity: 0.8,
                 backgroundColor: Theme.of(context).primaryColor,
                 targetColor: Colors.white,
                 textColor: Colors.white,
@@ -378,16 +378,18 @@ class InfoDialogContentState extends State<InfoDialogContent> {
         children: [
           Center(
               child: Text(
-            '¿Te cuesta llevar a cabo tareas extensas y enfocarte en ellas?',
-            style: estiloTitulos,
+            '¿Te cuesta enfocarte en tareas extensas?',
+            style: TextStyle(
+                fontSize: 24,
+                color: Colors.black54,
+                fontWeight: FontWeight.bold,
+                height: 1),
             textAlign: TextAlign.center,
           )),
-          Text(
-              'Pomodoro se trata de una técnica para dividir tus tareas en secciones fijas de tiempo, con descansos entre cada una de estas secciones. Esto es especialmente útil para tareas mecánicas, repetitivas, y/o extensas, pues evita un mayor desgaste físico y mental.'),
           Padding(
-            padding: EdgeInsets.only(top: 12.0, bottom: 5.0),
-            child: Text('¿Qué tal si le echas un vistazo?'),
-          ),
+              padding: EdgeInsets.only(top: 25.0),
+              child: Text(
+                  "Pomodoro te permite trabajar usando sesiones de tiempos establecidos con descansos periódicos fijos. Aquí podrás realizar tareas anonimas de Pomodoro y ver el historial de las sesiones que has hecho")),
         ],
       ),
     ),
@@ -399,9 +401,9 @@ class InfoDialogContentState extends State<InfoDialogContent> {
               child: Text('Déjate llevar',
                   style: estiloTitulos, textAlign: TextAlign.center)),
           Padding(
-            padding: EdgeInsets.only(top: 12.0, bottom: 5.0),
+            padding: EdgeInsets.only(top: 25.0, bottom: 5.0),
             child: Text(
-                'FlowTime se trata de una técnica basada en la teoría del flujo, la cual consiste en esos momentos en los que estás absorbido por una actividad en concreta y pierdes incluso la noción del tiempo, pudiendo desenvolverte en esto indefinidamente. Tiene un enfoque mayormente enfocado a tareas de creativas, de análisis, y resolución de problemas'),
+                'FlowTime se basa en la teoría del flujo, la cual consiste en esos momentos en los que estás absorbido por una actividad en concreta y pierdes incluso la noción del tiempo, pudiendo desenvolverte en esto indefinidamente. Tiene un enfoque mayormente enfocado a tareas de creativas, de análisis, y resolución de problemas, Aquí podrás realizar tareas anonimas de Flowtime y ver el historail de las sesiones que has hecho, así como registrar las interrupciones que hayas tenido en media sesión'),
           ),
         ],
       ),
@@ -414,9 +416,9 @@ class InfoDialogContentState extends State<InfoDialogContent> {
               child: Text('Organiza tus actividades',
                   style: estiloTitulos, textAlign: TextAlign.center)),
           Padding(
-            padding: EdgeInsets.only(top: 12.0, bottom: 5.0),
+            padding: EdgeInsets.only(top: 25.0, bottom: 5.0),
             child: Text(
-                'Llevar un control visual de tus pendientes, sea trabajo o proyectos personales, es una gran forma de empezar a visualizar tu progreso, tu rendimiento, ¡E incluso tu motivación para hacer algo!'),
+                'Llevar un control visual de tus pendientes, sea trabajo o proyectos personales, es una gran forma de empezar a visualizar tu progreso, tu rendimiento, ¡E incluso tu motivación para hacer algo!. Aquí puedes registrarlas, además de poder realizarlas directamente con cualquiera de ambas técnicas.'),
           ),
         ],
       ),
@@ -429,7 +431,7 @@ class InfoDialogContentState extends State<InfoDialogContent> {
               child: Text('Parece que quiere llover...',
                   style: estiloTitulos, textAlign: TextAlign.center)),
           Padding(
-            padding: EdgeInsets.only(top: 12.0, bottom: 5.0),
+            padding: EdgeInsets.only(top: 25.0, bottom: 5.0),
             child: Text(
                 '¿Necesitas dar en el blanco con alguna idea? Puedes dejar libre cualquiera que se te ocurra y filtrarlas cuanto se te antojen, hasta que des con la(s) correcta(s)'),
           )

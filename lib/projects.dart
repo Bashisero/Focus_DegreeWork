@@ -197,13 +197,19 @@ class ProyectoCard extends StatelessWidget {
         margin: const EdgeInsets.all(10.0),
         child: Stack(
           children: [
-            ListTile(
-              title: Text(proyecto.nombreProyecto),
-              // Más widgets y diseño aquí
+            Center(
+              child: ListTile(
+                title: Text(proyecto.nombreProyecto,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 4,
+                textAlign: TextAlign.center,
+                ),
+                // Más widgets y diseño aquí
+              ),
             ),
             Positioned(
-              top: 5,
-              right: 5,
+              top: -1,
+              right: -1,
               child: IconButton(
                   icon: const Icon(Icons.close),
                   onPressed: () {

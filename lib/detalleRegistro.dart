@@ -127,23 +127,25 @@ class DetalleRegistro extends StatelessWidget {
                     ),
                   ),
                   // Parte inferior con el texto de registro.anotaciones en un cuadro blanco
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.black, width: 2.0),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 16.0,
-                    ),
-                    constraints: const BoxConstraints(maxHeight: 250),
-                    width: double.infinity, // Ajusta la altura máxima
-                    child: SingleChildScrollView(
-                      child: Text(
-                        registro.anotacionesP,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.black,
+                  SingleChildScrollView(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: Colors.black, width: 2.0),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 16.0,
+                      ),
+                      constraints: const BoxConstraints(maxHeight: 250),
+                      width: double.infinity, // Ajusta la altura máxima
+                      child: SingleChildScrollView(
+                        child: Text(
+                          registro.anotacionesP,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.black,
+                          ),
                         ),
                       ),
                     ),

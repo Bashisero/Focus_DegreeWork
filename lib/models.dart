@@ -221,12 +221,9 @@ class TareaModel extends ChangeNotifier {
 
   Future<void> cambiarEstadoTarea(BuildContext context, TareaData tarea) async {
     try {
-      print("cambiarEstadoTarea - Tarea antes de la actualización: $tarea");
       TareaData tareaActualizada =
           await Provider.of<AppDatabase>(context, listen: false)
               .updateTareaYObtener(tarea.idTarea, !tarea.completada);
-      print(
-          "updateTareaYObtener - Tarea después de la actualización: $tareaActualizada");
 
       int index = _tareas.indexWhere((t) => t.idTarea == tarea.idTarea);
       if (index != -1) {
@@ -235,8 +232,6 @@ class TareaModel extends ChangeNotifier {
         _tareas.add(tareaActualizada);
       }
       _organizarTareasPorEstado();
-      print("Lista de tareas actualizada en TareaModel");
-
       notifyListeners();
     } catch (e) {
       print('Error al cambiar el estado de la tarea: $e');
@@ -253,7 +248,6 @@ class TareaModel extends ChangeNotifier {
           tarea.idProyecto, Provider.of<AppDatabase>(context, listen: false));
     } catch (e) {
       // Aquí podrías manejar cualquier excepción que se produzca en el proceso de eliminación.
-      print('Error al eliminar la tarea: $e');
     }
   }
 
