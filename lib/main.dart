@@ -311,19 +311,15 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   Container(
                       width: 270,
-                      height: 80, // Ajusta la anchura según tu imagen
-                      padding: const EdgeInsets.all(
-                          0), // Añade un poco de espacio alrededor del texto
+                      height: 80,
+                      padding: const EdgeInsets.all(0),
                       child: Text(
                         consejoAleatorio,
                         textAlign: TextAlign.center,
                         style: const TextStyle(
-                            color: Colors
-                                .black, // Asegúrate de que el color contraste bien con tu imagen
+                            color: Colors.black,
                             fontSize: 13,
-                            fontWeight: FontWeight
-                                .bold // Ajusta el tamaño del texto como prefieras
-                            ),
+                            fontWeight: FontWeight.bold),
                       ))
                 ],
               )),
@@ -402,6 +398,34 @@ class InfoDialogContentState extends State<InfoDialogContent> {
             padding: EdgeInsets.only(top: 25.0, bottom: 5.0),
             child: Text(
                 'FlowTime se basa en la teoría del flujo, la cual consiste en esos momentos en los que estás absorbido por una actividad en concreta y pierdes incluso la noción del tiempo, pudiendo desenvolverte en esto indefinidamente. Tiene un enfoque mayormente enfocado a tareas de creativas, de análisis, y resolución de problemas, Puedes realizar tareas anónimas usando Flowtime, o bien puedes hacer tareas que ya tengas creadas dentro de un proyecto, así como ver el historial de las sesiones que has hecho. También puedes registrar las interrupciones que hayas tenido en media sesión'),
+          ),
+        ],
+      ),
+    ),
+    const SingleChildScrollView(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Center(
+              child: Text('Interrupciones Externas',
+                  style: estiloTitulos, textAlign: TextAlign.center)),
+          Padding(
+              padding: EdgeInsets.only(top: 25.0, bottom: 5.0),
+              child: Text(
+                  "Sonidos del ambiente, llamadas de emergencia, alguien solicitándote, una urgencia, etc., todo lo anterior se denominan interrupciones externas")),
+        ],
+      ),
+    ),
+    const SingleChildScrollView(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Center(
+              child: Text('Interrupciones Internas',
+                  style: estiloTitulos, textAlign: TextAlign.center)),
+          Padding(
+            padding: EdgeInsets.only(top: 25.0, bottom: 5.0),
+            child: Text("Pensamientos ajenos a la actividad actual, hambre, ideas, impulsos, antojos, agotamiento, distracciones, etc., estas son las interrupciones internas.\n\n Ten en cuenta cuáles y cuántas tienes mientras haces algo, así podrás evitarlas después"),
           ),
         ],
       ),

@@ -9,7 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:audioplayers/audioplayers.dart';
 
-const List<String> list = <String>["10:00", "15:00", "20:00", "25:00", "30:00"];
+const List<String> list = <String>["05:00", "10:00", "15:00", "20:00", "25:00"];
 String tSesionProv = "";
 String nombreSesionProv = "";
 RegistroPom ultRegistro = RegistroPom.empty();
@@ -39,7 +39,7 @@ class Pomodoro extends StatefulWidget {
 }
 
 class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
-  String selectedTime = "10:00";
+  String selectedTime = "05:00";
   bool bloquearDropdown = false;
   bool cronoVisible = false;
   bool bloquearTextField = false;
@@ -649,7 +649,7 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
                                       });
                                 }
                               : null,
-                          child: const Text("Finalizar Sesión")),
+                          child: const Text("Guardar y Terminar")),
                     ),
                     StreamBuilder<Object>(
                         stream: _tomatesStreamController.stream,
@@ -778,7 +778,7 @@ class _PomodoroState extends State<Pomodoro> with WidgetsBindingObserver {
                                             MainAxisAlignment.center,
                                         children: [
                                           Text(
-                                              "Rondas de: ${registro.tiempoSesionP.substring(3, 5)} minutos"),
+                                              "Rondas de: ${registro.tiempoSesionP}"),
                                         ],
                                       ),
                                     ],
